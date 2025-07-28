@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:mapsapp/models/place_model.dart';
@@ -39,7 +37,6 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
   Widget build(BuildContext context) {
     return Stack(children: [
       GoogleMap(
-        mapType: MapType.hybrid,
         markers: markers,
         onMapCreated: (controller) {
           googleMapController = controller;
@@ -69,7 +66,7 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
 
   void initMapStyle() async {
     var nightMapStyle = await DefaultAssetBundle.of(context)
-        .loadString('assets/map_styles/night_map_style.json');
+        .loadString('assets/map_styles/aubergine_map_style.json');
     // ignore: deprecated_member_use
     googleMapController.setMapStyle(nightMapStyle);
   }
@@ -78,6 +75,7 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
     var myMarkers = places
         .map(
           (placeModel) => Marker(
+            infoWindow: InfoWindow(title: placeModel.name),
             position: placeModel.latLng,
             markerId: MarkerId(
               placeModel.id.toString(),
