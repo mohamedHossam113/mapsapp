@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:location/location.dart';
 import 'package:mapsapp/models/place_model.dart';
 
 class CustomGooglemaps extends StatefulWidget {
@@ -11,11 +12,14 @@ class CustomGooglemaps extends StatefulWidget {
 
 class _CustomGooglemapsState extends State<CustomGooglemaps> {
   late CameraPosition initialCameraPosition;
-  late GoogleMapController googleMapController;
+  GoogleMapController? googleMapController;
   Set<Marker> markers = {};
   Set<Circle> circles = {};
+  late Location location;
   @override
   void initState() {
+    location = Location();
+    updatedLocation();
     initPolygons();
     initMarkers();
     initialCameraPosition = const CameraPosition(
@@ -25,7 +29,7 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
 
   @override
   void dispose() {
-    googleMapController.dispose();
+    googleMapController!.dispose();
     super.dispose();
   }
 
@@ -53,7 +57,7 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
           right: 55,
           child: ElevatedButton(
             onPressed: () {
-              googleMapController.animateCamera(CameraUpdate.newLatLng(
+              googleMapController!.animateCamera(CameraUpdate.newLatLng(
                   const LatLng(30.4513010859998, 31.181894238053275)));
             },
             child: const Text('Change Location'),
@@ -65,7 +69,7 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
     var nightMapStyle = await DefaultAssetBundle.of(context)
         .loadString('assets/map_styles/aubergine_map_style.json');
     // ignore: deprecated_member_use
-    googleMapController.setMapStyle(nightMapStyle);
+    googleMapController!.setMapStyle(nightMapStyle);
   }
 
   void initMarkers() {
@@ -93,7 +97,59 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
     );
     circles.add(circle);
   }
+
+  Future<void> checkAndRequestLocationService() async {
+    var isServiceEnabled = await location.serviceEnabled();
+    if (!isServiceEnabled) {
+      isServiceEnabled = await location.requestService();
+      if (!isServiceEnabled) {
+        //TODO: show error bar
+      }
+    }
+    checkAndRequestLocationPermission();
+  }
+
+  Future<bool> checkAndRequestLocationPermission() async {
+    var permissionStatus = await location.hasPermission();
+    if (permissionStatus == PermissionStatus.deniedForever) {
+      return false;
+    }
+    if (permissionStatus == PermissionStatus.denied) {
+      permissionStatus = await location.requestPermission();
+      if (permissionStatus != PermissionStatus.granted) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  void getLocation() {
+    location.changeSettings(distanceFilter: 2);
+    location.onLocationChanged.listen((locationData) {
+      var cameraPostiton = CameraPosition(
+          zoom: 12,
+          target: LatLng(locationData.latitude!, locationData.longitude!));
+      googleMapController
+          ?.animateCamera(CameraUpdate.newCameraPosition(cameraPostiton));
+
+      var myLocationMarker = Marker(
+          markerId: const MarkerId('my_location_marker'),
+          position: LatLng(locationData.latitude!, locationData.longitude!));
+
+      markers.add(myLocationMarker);
+      setState(() {});
+    });
+  }
+
+  void updatedLocation() async {
+    await checkAndRequestLocationService();
+    var hasPermission = await checkAndRequestLocationPermission();
+    if (hasPermission) {
+      getLocation();
+    } else {}
+  }
 }
+
 
         // world view: 0 => 3
         // country view: 4 => 6
