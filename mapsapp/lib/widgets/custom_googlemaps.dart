@@ -13,17 +13,13 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
   late CameraPosition initialCameraPosition;
   late GoogleMapController googleMapController;
   Set<Marker> markers = {};
+  Set<Circle> circles = {};
   @override
   void initState() {
+    initPolygons();
     initMarkers();
     initialCameraPosition = const CameraPosition(
-
-        // world view: 0 => 3
-        // country view: 4 => 6
-        // city view: 10 => 12
-        // city view: 13 => 17
-        zoom: 12,
-        target: LatLng(30.04501634880077, 31.23425547067458));
+        zoom: 12, target: LatLng(30.04501634880077, 31.23425547067458));
     super.initState();
   }
 
@@ -37,6 +33,7 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
   Widget build(BuildContext context) {
     return Stack(children: [
       GoogleMap(
+        circles: circles,
         markers: markers,
         onMapCreated: (controller) {
           googleMapController = controller;
@@ -85,4 +82,20 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
         .toSet();
     markers.addAll(myMarkers);
   }
+
+  void initPolygons() {
+    Circle circle = Circle(
+      strokeWidth: 3,
+      center: const LatLng(30.057642791973688, 31.417043637443197),
+      radius: 1000,
+      fillColor: Colors.blue.withOpacity(.1),
+      circleId: const CircleId('1'),
+    );
+    circles.add(circle);
+  }
 }
+
+        // world view: 0 => 3
+        // country view: 4 => 6
+        // city view: 10 => 12
+        // city view: 13 => 17
