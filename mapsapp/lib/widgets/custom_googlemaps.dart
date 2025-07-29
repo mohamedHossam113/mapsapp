@@ -110,12 +110,12 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
         googleMapController
             ?.animateCamera(CameraUpdate.newCameraPosition(cameraPostiton));
 
-        var myLocationMarker = Marker(
-            markerId: const MarkerId('my_location_marker'),
-            position: LatLng(locationData.latitude!, locationData.longitude!));
+        // var myLocationMarker = Marker(
+        //     markerId: const MarkerId('my_location_marker'),
+        //     position: LatLng(locationData.latitude!, locationData.longitude!));
 
-        markers.add(myLocationMarker);
-        setState(() {});
+        // markers.add(myLocationMarker);
+        // setState(() {});
       });
     }
   }
