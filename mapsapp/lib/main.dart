@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:mapsapp/widgets/custom_googlemaps.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mapsapp/cubits/auth_cubit.dart';
+import 'package:mapsapp/pages/login_page.dart';
+import 'package:mapsapp/services/auth_service.dart';
 
 void main() {
   runApp(const TestGoogleMapsWithFlutter());
@@ -10,9 +13,12 @@ class TestGoogleMapsWithFlutter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: CustomGooglemaps(),
+    return BlocProvider(
+      create: (context) => AuthCubit(AuthService()),
+      child: const MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: LoginPage(),
+      ),
     );
   }
 }

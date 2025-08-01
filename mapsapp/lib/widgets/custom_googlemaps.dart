@@ -19,7 +19,7 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
   @override
   void initState() {
     locationService = LocationService();
-    updatedLocation();
+    // updatedLocation();
     initPolygons();
     initMarkers();
     initialCameraPosition = const CameraPosition(
@@ -92,33 +92,33 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
       strokeWidth: 3,
       center: const LatLng(30.057642791973688, 31.417043637443197),
       radius: 1000,
-      fillColor: Colors.blue.withOpacity(.1),
+      fillColor: Colors.blue.withValues(alpha: .1),
       circleId: const CircleId('1'),
     );
     circles.add(circle);
   }
 
-  void updatedLocation() async {
-    await locationService.checkAndRequestLocationService();
-    var hasPermission =
-        await locationService.checkAndRequestLocationPermission();
-    if (hasPermission) {
-      locationService.getRealTimeLocationData((locationData) {
-        var cameraPostiton = CameraPosition(
-            zoom: 12,
-            target: LatLng(locationData.latitude!, locationData.longitude!));
-        googleMapController
-            ?.animateCamera(CameraUpdate.newCameraPosition(cameraPostiton));
+  // void updatedLocation() async {
+  //   await locationService.checkAndRequestLocationService();
+  //   var hasPermission =
+  //       await locationService.checkAndRequestLocationPermission();
+  //   if (hasPermission) {
+  //     locationService.getRealTimeLocationData((locationData) {
+  //       var cameraPostiton = CameraPosition(
+  //           zoom: 12,
+  //           target: LatLng(locationData.latitude!, locationData.longitude!));
+  //       googleMapController
+  //           ?.animateCamera(CameraUpdate.newCameraPosition(cameraPostiton));
 
-        // var myLocationMarker = Marker(
-        //     markerId: const MarkerId('my_location_marker'),
-        //     position: LatLng(locationData.latitude!, locationData.longitude!));
+  //       // var myLocationMarker = Marker(
+  //       //     markerId: const MarkerId('my_location_marker'),
+  //       //     position: LatLng(locationData.latitude!, locationData.longitude!));
 
-        // markers.add(myLocationMarker);
-        // setState(() {});
-      });
-    }
-  }
+  //       // markers.add(myLocationMarker);
+  //       // setState(() {});
+  //     });
+  //   }
+  // }
 }
 
 
