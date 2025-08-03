@@ -1,5 +1,6 @@
 // services/auth_service.dart
 import 'package:dio/dio.dart';
+import 'package:mapsapp/management/token_manager.dart';
 import 'package:mapsapp/models/auth_response.dart';
 
 class AuthService {
@@ -12,6 +13,7 @@ class AuthService {
   ));
 
   var baseUrl = 'http://10.0.2.2:8010/api';
+
   Future<AuthResponse> login(String username, String password) async {
     final response = await _dio.post('/user/login', data: {
       'username': username,
@@ -19,7 +21,12 @@ class AuthService {
     });
 
     if (response.statusCode == 200) {
-      return AuthResponse.fromJson(response.data); // ← لو API بيرجع توكن
+      final authResponse = AuthResponse.fromJson(response.data);
+
+      // ✅ احفظ التوكن باستخدام flutter_secure_storage
+      await TokenManager.saveToken(authResponse.token ?? '');
+
+      return authResponse;
     } else {
       throw Exception('Login failed');
     }

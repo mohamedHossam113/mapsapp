@@ -26,7 +26,6 @@ class AuthCubit extends Cubit<AuthState> {
     try {
       final AuthResponse response = await authService.registerUser(
           username, email, password, confirmPassword);
-      print(' sfsf');
       emit(AuthSuccess(token: response.token));
     } catch (e) {
       emit(AuthFailure(error: 'Registration failed: ${e.toString()}'));
