@@ -6,6 +6,7 @@ import 'package:mapsapp/models/auth_response.dart';
 class AuthService {
   final Dio _dio = Dio(BaseOptions(
     baseUrl: 'http://10.0.2.2:8010/api', // ✅ ADD THIS
+    // baseUrl: 'http://127.0.0.1:8010/api',
 
     connectTimeout: const Duration(seconds: 10),
     receiveTimeout: const Duration(seconds: 10),
@@ -13,6 +14,7 @@ class AuthService {
   ));
 
   var baseUrl = 'http://10.0.2.2:8010/api';
+  // var webbaseUrl = 'http://127.0.0.1:8010/api';
 
   Future<AuthResponse> login(String username, String password) async {
     final response = await _dio.post('/user/login', data: {
@@ -24,7 +26,7 @@ class AuthService {
       final authResponse = AuthResponse.fromJson(response.data);
 
       // ✅ احفظ التوكن باستخدام flutter_secure_storage
-      await TokenManager.saveToken(authResponse.token ?? '');
+      await TokenManager.saveToken(authResponse.token);
 
       return authResponse;
     } else {

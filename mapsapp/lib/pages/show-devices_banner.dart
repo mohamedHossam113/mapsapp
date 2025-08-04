@@ -32,7 +32,7 @@ void showDevicesPanel(BuildContext context) async {
                     isMoving ? Icons.directions_car : Icons.stop_circle,
                     color: isMoving ? Colors.green : Colors.red,
                   ),
-                  title: Text(device.name ?? 'Unnamed Device'),
+                  title: Text(device.name),
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

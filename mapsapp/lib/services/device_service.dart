@@ -5,6 +5,7 @@ import '../models/device_model.dart';
 class DeviceService {
   final Dio _dio = Dio();
   final String _baseUrl = 'http://10.0.2.2:8010/api/vehicle/all-devices';
+  // final String _baseUrl = 'http://127.0.0.1:8010/api/vehicle/all-devices';
 
   Future<List<DeviceModel>> fetchDevices() async {
     try {

@@ -5,6 +5,7 @@ import 'package:mapsapp/cubits/auth_state.dart';
 import 'package:mapsapp/pages/registeration_page.dart';
 import 'package:mapsapp/widgets/custom_googlemaps.dart';
 import 'package:mapsapp/widgets/custom_widget.dart';
+import 'package:mapsapp/widgets/main_page.dart';
 import 'package:mapsapp/widgets/my_button.dart';
 
 class LoginPage extends StatefulWidget {
@@ -28,8 +29,7 @@ class _LoginPageState extends State<LoginPage> {
             WidgetsBinding.instance.addPostFrameCallback((_) {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(
-                    builder: (context) => const CustomGooglemaps()),
+                MaterialPageRoute(builder: (context) => const MainPage()),
               );
             });
           } else if (state is AuthFailure) {

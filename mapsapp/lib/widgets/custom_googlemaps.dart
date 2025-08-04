@@ -5,6 +5,7 @@ import 'package:mapsapp/models/place_model.dart';
 import 'package:mapsapp/services/location_service.dart';
 import 'package:mapsapp/services/device_service.dart';
 import 'package:mapsapp/models/device_model.dart';
+import '../services/geofence_service.dart';
 
 class CustomGooglemaps extends StatefulWidget {
   const CustomGooglemaps({super.key});
@@ -13,13 +14,20 @@ class CustomGooglemaps extends StatefulWidget {
   State<CustomGooglemaps> createState() => _CustomGooglemapsState();
 }
 
-class _CustomGooglemapsState extends State<CustomGooglemaps> {
+class _CustomGooglemapsState extends State<CustomGooglemaps>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
   List<DeviceModel> allDevices = [];
   List<DeviceModel> filteredDevices = [];
   late CameraPosition initialCameraPosition;
   GoogleMapController? googleMapController;
   Set<Marker> markers = {};
   Set<Circle> circles = {};
+  Set<Polygon> polygons = {};
+  final GeofenceService _geofenceService = GeofenceService();
+
   late LocationService locationService;
   final TextEditingController _searchController = TextEditingController();
   final FocusNode _searchFocusNode = FocusNode();
@@ -33,6 +41,8 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
     initPolygons();
     initMarkers();
     initDeviceMarkers();
+    loadGeofences();
+
     initialCameraPosition = const CameraPosition(
       zoom: 12,
       target: LatLng(30.0444, 31.2357),
@@ -53,6 +63,8 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
 
   void fetchAndSetDevices() async {
     final devices = await DeviceService().fetchDevices();
+    if (!mounted) return;
+
     setState(() {
       allDevices = devices;
       filteredDevices = devices;
@@ -61,7 +73,7 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
 
   void filterDevices(String query) {
     final filtered = allDevices.where((device) {
-      final name = device.name?.toLowerCase() ?? '';
+      final name = device.name.toLowerCase();
       return name.contains(query.toLowerCase());
     }).toList();
 
@@ -80,6 +92,8 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // required by AutomaticKeepAliveClientMixin
+
     return Scaffold(
       body: SlidingUpPanel(
         backdropColor: Colors.black,
@@ -96,10 +110,10 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
         body: GoogleMap(
           zoomControlsEnabled: false,
           circles: circles,
+          polygons: polygons,
           markers: markers,
           onMapCreated: (controller) {
             googleMapController = controller;
-            initMapStyle();
           },
           initialCameraPosition: initialCameraPosition,
         ),
@@ -139,10 +153,10 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
                     isMoving ? Icons.directions_car : Icons.stop_circle,
                     color: isMoving ? Colors.green : Colors.red,
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      selectedDevice!.name ?? 'Unnamed Device',
+                      selectedDevice!.name,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -210,8 +224,7 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
 
                       return Card(
                         color: Colors.grey.shade900,
-                        margin: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 8),
+                        margin: const EdgeInsets.only(bottom: 16),
                         child: ListTile(
                           onTap: () async {
                             await googleMapController?.animateCamera(
@@ -227,10 +240,8 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
                             isMoving ? Icons.directions_car : Icons.stop_circle,
                             color: isMoving ? Colors.green : Colors.red,
                           ),
-                          title: Text(
-                            device.name ?? 'Unnamed Device',
-                            style: const TextStyle(color: Colors.white),
-                          ),
+                          title: Text(device.name,
+                              style: const TextStyle(color: Colors.white)),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
@@ -258,13 +269,11 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
 
   void initMarkers() {
     var myMarkers = places
-        .map(
-          (placeModel) => Marker(
-            infoWindow: InfoWindow(title: placeModel.name),
-            position: placeModel.latLng,
-            markerId: MarkerId(placeModel.id.toString()),
-          ),
-        )
+        .map((placeModel) => Marker(
+              infoWindow: InfoWindow(title: placeModel.name),
+              position: placeModel.latLng,
+              markerId: MarkerId(placeModel.id.toString()),
+            ))
         .toSet();
 
     markers.addAll(myMarkers);
@@ -286,6 +295,8 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
       final deviceService = DeviceService();
       final devices = await deviceService.fetchDevices();
 
+      if (!mounted) return;
+
       final deviceMarkers = devices.map((device) {
         return Marker(
           markerId: MarkerId(device.id),
@@ -306,45 +317,52 @@ class _CustomGooglemapsState extends State<CustomGooglemaps> {
         markers.addAll(deviceMarkers);
       });
     } catch (e) {
-      debugPrint('\u274c Failed to load devices: $e');
+      debugPrint('❌ Failed to load devices: $e');
+    }
+  }
+
+  void loadGeofences() async {
+    try {
+      final geofences = await _geofenceService.fetchGeofences();
+
+      if (!mounted) return;
+
+      final circleGeofences = <Circle>{};
+      final polygonGeofences = <Polygon>{};
+
+      for (final g in geofences) {
+        if (g.shape == 'circle' && g.coords.isNotEmpty && g.radius != null) {
+          print('the fuckin shape(${g.shape} ,${g.coords}  ${g.radius})');
+          circleGeofences.add(
+            Circle(
+              circleId: CircleId(g.id),
+              center: g.coords.first,
+              radius: g.radius! * 10,
+              strokeColor: Colors.red,
+              fillColor: Colors.red.withOpacity(0.2),
+              strokeWidth: 10,
+            ),
+          );
+        } else if (g.shape == 'polygon' && g.coords.length >= 3) {
+          print('the fuckin shape(${g.shape} ,${g.coords})');
+          polygonGeofences.add(
+            Polygon(
+              polygonId: PolygonId(g.id),
+              points: g.coords,
+              strokeColor: Colors.orange,
+              fillColor: Colors.orange.withOpacity(0.2),
+              strokeWidth: 10,
+            ),
+          );
+        }
+      }
+
+      setState(() {
+        circles = circleGeofences;
+        polygons = polygonGeofences;
+      });
+    } catch (e) {
+      debugPrint('❌ Failed to load geofences: $e');
     }
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-  // void updatedLocation() async {
-  //   await locationService.checkAndRequestLocationService();
-  //   var hasPermission =
-  //       await locationService.checkAndRequestLocationPermission();
-  //   if (hasPermission) {
-  //     locationService.getRealTimeLocationData((locationData) {
-  //       var cameraPostiton = CameraPosition(
-  //           zoom: 12,
-  //           target: LatLng(locationData.latitude!, locationData.longitude!));
-  //       googleMapController
-  //           ?.animateCamera(CameraUpdate.newCameraPosition(cameraPostiton));
-
-  //       // var myLocationMarker = Marker(
-  //       //     markerId: const MarkerId('my_location_marker'),
-  //       //     position: LatLng(locationData.latitude!, locationData.longitude!));
-
-  //       // markers.add(myLocationMarker);
-  //       // setState(() {});
-  //     });
-  //   }
-  // }
-
-
-        // world view: 0 => 3
-        // country view: 4 => 6
-        // city view: 10 => 12
-        // city view: 13 => 17
