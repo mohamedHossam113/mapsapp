@@ -36,10 +36,12 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
   final FocusNode _searchFocusNode = FocusNode();
   final PanelController _panelController = PanelController();
   DeviceModel? selectedDevice;
+  bool _isMounted = false;
 
   @override
   void initState() {
     super.initState();
+    _isMounted = true;
     locationService = LocationService();
     initPolygons();
     initMarkers();
@@ -60,53 +62,59 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
     });
 
     final cubit = context.read<DeviceCubit>();
-    cubit.setOnDeviceUpdate(_handleDeviceUpdate);
-    cubit.fetchDevices();
-  }
+    cubit.setOnDeviceUpdate((deviceId, data) {
+      if (!_isMounted || !mounted) return;
 
-  void _handleDeviceUpdate(String deviceId, Map<String, dynamic> data) {
-    final coords = data['coords'];
-    final lat = coords['lat'];
-    final lng = coords['lng'];
-    final speed = (data['speed'] ?? 0).toDouble();
-    final status = data['status'] ?? 'unknown';
+      final coords = data['coords'];
+      final lat = coords['lat'];
+      final lng = coords['lng'];
+      final speed = (data['speed'] ?? 0).toDouble();
+      final status = data['status'] ?? 'unknown';
+      final newPos = LatLng(lat, lng);
 
-    final newPos = LatLng(lat, lng);
+      setState(() {
+        markers = {
+          for (final marker in markers)
+            if (marker.markerId.value != deviceId) marker,
+          Marker(
+            markerId: MarkerId(deviceId),
+            position: newPos,
+            icon: BitmapDescriptor.defaultMarkerWithHue(
+              status.toLowerCase() == 'moving'
+                  ? BitmapDescriptor.hueGreen
+                  : BitmapDescriptor.hueRed,
+            ),
+            infoWindow: InfoWindow(
+              title: deviceId,
+              snippet: 'Speed: $speed km/h\nStatus: $status',
+            ),
+          )
+        };
 
-    // 👇 The same logic as before
-    final updatedMarkers =
-        markers.where((marker) => marker.markerId.value != deviceId).toSet();
+        final index = allDevices.indexWhere((d) => d.id == deviceId);
+        if (index != -1) {
+          final updated = allDevices[index].copyWith(
+            latitude: lat,
+            longitude: lng,
+            speed: speed.toInt(),
+            status: status,
+          );
+          allDevices[index] = updated;
+        }
 
-    updatedMarkers.add(
-      Marker(
-        markerId: MarkerId(deviceId),
-        position: newPos,
-        icon: BitmapDescriptor.defaultMarkerWithHue(
-          status.toLowerCase() == 'moving'
-              ? BitmapDescriptor.hueGreen
-              : BitmapDescriptor.hueRed,
-        ),
-        infoWindow: InfoWindow(
-          title: deviceId,
-          snippet: 'Speed: $speed km/h\nStatus: $status',
-        ),
-      ),
-    );
-
-    setState(() {
-      markers = updatedMarkers;
+        if (selectedDevice?.id == deviceId) {
+          selectedDevice = selectedDevice!.copyWith(
+            latitude: lat,
+            longitude: lng,
+            speed: speed.toInt(),
+            status: status,
+          );
+        }
+      });
     });
 
-    if (selectedDevice?.id == deviceId) {
-      setState(() {
-        selectedDevice = selectedDevice!.copyWith(
-          latitude: newPos.latitude,
-          longitude: newPos.longitude,
-          speed: speed.toInt(),
-          status: status,
-        );
-      });
-    }
+    cubit.fetchDevices();
+    context.read<GeofenceCubit>().fetchGeofences();
   }
 
   void filterDevices(String query) {
@@ -115,6 +123,7 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
       return name.contains(query.toLowerCase());
     }).toList();
 
+    if (!_isMounted || !mounted) return;
     setState(() {
       filteredDevices = filtered;
     });
@@ -122,6 +131,7 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
 
   @override
   void dispose() {
+    _isMounted = false;
     googleMapController?.dispose();
     _searchController.dispose();
     _searchFocusNode.dispose();
@@ -131,11 +141,12 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
   @override
   Widget build(BuildContext context) {
     super.build(context);
-
     return MultiBlocListener(
       listeners: [
         BlocListener<DeviceCubit, DeviceState>(
           listener: (context, state) {
+            if (!_isMounted || !mounted) return;
+
             if (state is DeviceLoaded) {
               setState(() {
                 allDevices = state.devices;
@@ -147,6 +158,8 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
         ),
         BlocListener<GeofenceCubit, GeofenceState>(
           listener: (context, state) {
+            if (!_isMounted || !mounted) return;
+
             if (state is GeofenceLoaded) {
               loadGeofences(state.geofences);
             }
@@ -231,6 +244,9 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
                   style: const TextStyle(color: Colors.white)),
               Text('State: ${isMoving ? "Moving" : "Stopped"}',
                   style: const TextStyle(color: Colors.white)),
+              Text(
+                  'lat and lng: ${selectedDevice!.latitude}, ${selectedDevice!.longitude}',
+                  style: const TextStyle(color: Colors.white)),
             ],
           ),
         ),
@@ -253,11 +269,9 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
                     borderSide: BorderSide(color: Colors.white)),
                 enabledBorder: OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.white)),
-                fillColor: Colors.white,
                 hintText: 'Search devices...',
                 hintStyle: TextStyle(color: Colors.grey),
-                iconColor: Colors.white,
-                prefixIcon: Icon(Icons.search),
+                prefixIcon: Icon(Icons.search, color: Colors.white),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.all(Radius.circular(12)),
                 ),
@@ -306,7 +320,7 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
                               Text('State: ${isMoving ? "Moving" : "Stopped"}',
                                   style: const TextStyle(color: Colors.white)),
                               Text(
-                                  'lat and lng: ${device.latitude} , ${device.longitude}',
+                                  'lat and lng: ${device.latitude}, ${device.longitude}',
                                   style: const TextStyle(color: Colors.white)),
                             ],
                           ),
@@ -318,12 +332,6 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
         ],
       ),
     );
-  }
-
-  void initMapStyle() async {
-    var nightMapStyle = await DefaultAssetBundle.of(context)
-        .loadString('assets/map_styles/aubergine_map_style.json');
-    googleMapController?.setMapStyle(nightMapStyle);
   }
 
   void initMarkers() {
@@ -338,15 +346,41 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
     markers.addAll(myMarkers);
   }
 
-  void initPolygons() {
-    Circle circle = Circle(
-      strokeWidth: 3,
-      center: const LatLng(30.057642791973688, 31.417043637443197),
-      radius: 1000,
-      fillColor: Colors.blue.withOpacity(.1),
-      circleId: const CircleId('1'),
-    );
-    circles.add(circle);
+  void initPolygons() {}
+
+  void loadGeofences(List<Geofence> geofences) {
+    final circleGeofences = <Circle>{};
+    final polygonGeofences = <Polygon>{};
+
+    for (final g in geofences) {
+      if (g.shape == 'circle' && g.coords.isNotEmpty && g.radius != null) {
+        circleGeofences.add(
+          Circle(
+            circleId: CircleId(g.id),
+            center: g.coords.first,
+            radius: g.radius!,
+            strokeColor: Colors.red,
+            fillColor: Colors.red.withOpacity(0.2),
+            strokeWidth: 5,
+          ),
+        );
+      } else if (g.shape == 'polygon' && g.coords.length >= 3) {
+        polygonGeofences.add(
+          Polygon(
+            polygonId: PolygonId(g.id),
+            points: g.coords,
+            strokeColor: Colors.orange,
+            fillColor: Colors.orange.withOpacity(0.2),
+            strokeWidth: 5,
+          ),
+        );
+      }
+    }
+
+    setState(() {
+      circles = circleGeofences;
+      polygons = polygonGeofences;
+    });
   }
 
   void initDeviceMarkers(List<DeviceModel> devices) {
@@ -368,41 +402,6 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
 
     setState(() {
       markers.addAll(deviceMarkers);
-    });
-  }
-
-  void loadGeofences(List<Geofence> geofences) {
-    final circleGeofences = <Circle>{};
-    final polygonGeofences = <Polygon>{};
-
-    for (final g in geofences) {
-      if (g.shape == 'circle' && g.coords.isNotEmpty && g.radius != null) {
-        circleGeofences.add(
-          Circle(
-            circleId: CircleId(g.id),
-            center: g.coords.first,
-            radius: g.radius!,
-            strokeColor: Colors.red,
-            fillColor: Colors.red.withOpacity(0.2),
-            strokeWidth: 10,
-          ),
-        );
-      } else if (g.shape == 'polygon' && g.coords.length >= 3) {
-        polygonGeofences.add(
-          Polygon(
-            polygonId: PolygonId(g.id),
-            points: g.coords,
-            strokeColor: Colors.orange,
-            fillColor: Colors.orange.withOpacity(0.2),
-            strokeWidth: 10,
-          ),
-        );
-      }
-    }
-
-    setState(() {
-      circles = circleGeofences;
-      polygons = polygonGeofences;
     });
   }
 }

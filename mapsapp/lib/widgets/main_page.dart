@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mapsapp/pages/devices_page.dart';
-import 'package:mapsapp/widgets/settings_page.dart';
+import 'package:mapsapp/pages/settings_page.dart';
 import 'custom_googlemaps.dart';
 
 class MainPage extends StatefulWidget {

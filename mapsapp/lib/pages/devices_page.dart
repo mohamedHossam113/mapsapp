@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mapsapp/cubits/devices_state.dart';
+import 'package:mapsapp/pages/chosen_device_page.dart';
+import 'package:mapsapp/widgets/main_page.dart';
 import '../cubits/device_cubit.dart';
 
 class DevicesPage extends StatefulWidget {
@@ -23,6 +25,17 @@ class _DevicesPageState extends State<DevicesPage> {
       backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.black,
+        iconTheme: const IconThemeData(color: Colors.white),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (_) => const MainPage()),
+              (route) => false,
+            );
+          },
+        ),
         title: const Text(
           'Devices',
           style: TextStyle(color: Colors.white),
@@ -69,56 +82,66 @@ class _DevicesPageState extends State<DevicesPage> {
                   final device = devices[index];
                   final isMoving = device.status.toLowerCase() == 'moving';
 
-                  return Card(
-                    color: Colors.grey.shade900,
-                    clipBehavior: Clip.none,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 4,
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.directions_car,
-                                color: isMoving ? Colors.green : Colors.red,
-                                size: 28,
-                              ),
-                              const SizedBox(width: 8),
-                              Expanded(
-                                child: Text(
-                                  device.name,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: Colors.white,
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
+                  return GestureDetector(
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ChosenDevicePage(device: device),
+                        ),
+                      );
+                    },
+                    child: Card(
+                      color: Colors.grey.shade900,
+                      clipBehavior: Clip.none,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 4,
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.directions_car,
+                                  color: isMoving ? Colors.green : Colors.red,
+                                  size: 28,
                                 ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    device.name,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                      color: Colors.white,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'State: ${device.status}',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.white,
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'State: ${device.status}',
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Colors.white,
                             ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Speed: ${device.speed.toStringAsFixed(1)} km/h',
-                            style: const TextStyle(
-                              fontSize: 13,
-                              color: Colors.white,
+                            const SizedBox(height: 4),
+                            Text(
+                              'Speed: ${device.speed.toStringAsFixed(1)} km/h',
+                              style: const TextStyle(
+                                fontSize: 13,
+                                color: Colors.white,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   );
