@@ -25,4 +25,22 @@ class DeviceModel {
       speed: json['speed'],
     );
   }
+
+  DeviceModel copyWith({
+    String? id,
+    String? name,
+    double? latitude,
+    double? longitude,
+    String? status,
+    int? speed,
+  }) {
+    return DeviceModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      status: status ?? this.status,
+      speed: speed ?? this.speed,
+    );
+  }
 }

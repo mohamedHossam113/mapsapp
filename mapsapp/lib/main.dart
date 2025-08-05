@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mapsapp/cubits/auth_cubit.dart';
+import 'package:mapsapp/cubits/device_cubit.dart';
+import 'package:mapsapp/cubits/geofence_cubit.dart';
 import 'package:mapsapp/pages/login_page.dart';
 import 'package:mapsapp/services/auth_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:mapsapp/services/device_service.dart';
+import 'package:mapsapp/services/geofence_service.dart';
 import 'package:mapsapp/widgets/main_page.dart';
 
 void main() async {
@@ -29,13 +33,17 @@ class TestGoogleMapsWithFlutter extends StatelessWidget {
 
         final token = snapshot.data;
 
-        return BlocProvider(
-          create: (context) => AuthCubit(AuthService()),
+        return MultiBlocProvider(
+          providers: [
+            BlocProvider(create: (_) => DeviceCubit(DeviceService())),
+            BlocProvider(create: (_) => AuthCubit(AuthService())),
+            BlocProvider(create: (_) => GeofenceCubit(GeofenceService())),
+          ],
           child: MaterialApp(
             debugShowCheckedModeBanner: false,
             home: token != null && token.isNotEmpty
-                ? const MainPage() // ✅ Logged in
-                : const LoginPage(), // ❌ No token, go to login
+                ? const MainPage()
+                : const LoginPage(),
           ),
         );
       },

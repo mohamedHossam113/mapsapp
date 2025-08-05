@@ -3,7 +3,6 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mapsapp/cubits/auth_cubit.dart';
 import 'package:mapsapp/cubits/auth_state.dart';
 import 'package:mapsapp/pages/registeration_page.dart';
-import 'package:mapsapp/widgets/custom_googlemaps.dart';
 import 'package:mapsapp/widgets/custom_widget.dart';
 import 'package:mapsapp/widgets/main_page.dart';
 import 'package:mapsapp/widgets/my_button.dart';
