@@ -16,13 +16,15 @@ class DeviceModel {
   });
 
   factory DeviceModel.fromJson(Map<String, dynamic> json) {
+    final coords = json['coords'] ?? {};
+
     return DeviceModel(
-      id: json['_id'],
-      name: json['name'],
-      latitude: json['coords']['lat'],
-      longitude: json['coords']['lng'],
-      status: json['status'],
-      speed: json['speed'],
+      id: json['_id'] ?? '',
+      name: json['name'] ?? 'Unknown',
+      latitude: (coords['lat'] ?? 0).toDouble(),
+      longitude: (coords['lng'] ?? 0).toDouble(),
+      status: json['status'] ?? 'unknown',
+      speed: json['speed'] ?? 0,
     );
   }
 
