@@ -21,11 +21,16 @@ class _DevicesPageState extends State<DevicesPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor:
+            theme.appBarTheme.backgroundColor ?? theme.scaffoldBackgroundColor,
+        iconTheme: theme.appBarTheme.iconTheme ??
+            IconThemeData(color: colorScheme.onSurface),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -36,9 +41,10 @@ class _DevicesPageState extends State<DevicesPage> {
             );
           },
         ),
-        title: const Text(
+        title: Text(
           'Devices',
-          style: TextStyle(color: Colors.white),
+          style: theme.appBarTheme.titleTextStyle ??
+              TextStyle(color: colorScheme.onSurface),
         ),
       ),
       body: BlocBuilder<DeviceCubit, DeviceState>(
@@ -51,7 +57,7 @@ class _DevicesPageState extends State<DevicesPage> {
             return Center(
               child: Text(
                 state.message,
-                style: const TextStyle(color: Colors.red),
+                style: TextStyle(color: colorScheme.error),
               ),
             );
           }
@@ -60,10 +66,10 @@ class _DevicesPageState extends State<DevicesPage> {
             final devices = state.devices;
 
             if (devices.isEmpty) {
-              return const Center(
+              return Center(
                 child: Text(
                   'No devices found.',
-                  style: TextStyle(color: Colors.white),
+                  style: TextStyle(color: theme.textTheme.bodyMedium?.color),
                 ),
               );
             }
@@ -92,7 +98,7 @@ class _DevicesPageState extends State<DevicesPage> {
                       );
                     },
                     child: Card(
-                      color: Colors.grey.shade900,
+                      color: theme.cardColor,
                       clipBehavior: Clip.none,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(16),
@@ -114,10 +120,9 @@ class _DevicesPageState extends State<DevicesPage> {
                                 Expanded(
                                   child: Text(
                                     device.name,
-                                    style: const TextStyle(
+                                    style:
+                                        theme.textTheme.titleMedium?.copyWith(
                                       fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                      color: Colors.white,
                                     ),
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -127,18 +132,12 @@ class _DevicesPageState extends State<DevicesPage> {
                             const SizedBox(height: 12),
                             Text(
                               'State: ${device.status}',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: Colors.white,
-                              ),
+                              style: theme.textTheme.bodyMedium,
                             ),
                             const SizedBox(height: 4),
                             Text(
                               'Speed: ${device.speed.toStringAsFixed(1)} km/h',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: Colors.white,
-                              ),
+                              style: theme.textTheme.bodyMedium,
                             ),
                           ],
                         ),
@@ -150,7 +149,7 @@ class _DevicesPageState extends State<DevicesPage> {
             );
           }
 
-          return const SizedBox.shrink(); // fallback
+          return const SizedBox.shrink();
         },
       ),
     );

@@ -4,10 +4,12 @@ import 'package:mapsapp/cubits/device_cubit.dart';
 import 'package:mapsapp/cubits/devices_state.dart';
 
 void showDevicesPanel(BuildContext context) {
+  final theme = Theme.of(context);
+
   showModalBottomSheet(
-    backgroundColor: Colors.black,
     context: context,
     isScrollControlled: true,
+    backgroundColor: theme.colorScheme.surface,
     shape: const RoundedRectangleBorder(
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
@@ -27,7 +29,7 @@ void showDevicesPanel(BuildContext context) {
                 return Center(
                   child: Text(
                     state.message,
-                    style: const TextStyle(color: Colors.red),
+                    style: TextStyle(color: theme.colorScheme.error),
                   ),
                 );
               }
@@ -36,10 +38,11 @@ void showDevicesPanel(BuildContext context) {
                 final devices = state.devices;
 
                 if (devices.isEmpty) {
-                  return const Center(
+                  return Center(
                     child: Text(
                       'No devices found.',
-                      style: TextStyle(color: Colors.white),
+                      style:
+                          TextStyle(color: theme.textTheme.bodyMedium?.color),
                     ),
                   );
                 }
@@ -52,7 +55,7 @@ void showDevicesPanel(BuildContext context) {
                     final isMoving = device.speed > 0;
 
                     return Card(
-                      color: Colors.grey.shade900,
+                      color: theme.cardColor,
                       margin: const EdgeInsets.symmetric(
                           horizontal: 16, vertical: 8),
                       child: ListTile(
@@ -62,18 +65,21 @@ void showDevicesPanel(BuildContext context) {
                         ),
                         title: Text(
                           device.name,
-                          style: const TextStyle(color: Colors.white),
+                          style: TextStyle(
+                              color: theme.textTheme.titleLarge?.color),
                         ),
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               'Speed: ${device.speed.toStringAsFixed(1)} km/h',
-                              style: const TextStyle(color: Colors.white70),
+                              style: TextStyle(
+                                  color: theme.textTheme.bodyMedium?.color),
                             ),
                             Text(
                               'State: ${device.status}',
-                              style: const TextStyle(color: Colors.white70),
+                              style: TextStyle(
+                                  color: theme.textTheme.bodyMedium?.color),
                             ),
                           ],
                         ),
@@ -83,7 +89,7 @@ void showDevicesPanel(BuildContext context) {
                 );
               }
 
-              return const SizedBox.shrink(); // fallback
+              return const SizedBox.shrink();
             },
           );
         },

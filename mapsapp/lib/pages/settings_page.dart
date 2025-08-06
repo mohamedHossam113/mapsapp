@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mapsapp/management/token_manager.dart';
 import 'package:mapsapp/pages/login_page.dart';
+import 'package:provider/provider.dart';
+import 'package:mapsapp/management/theme_manager.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -8,7 +10,6 @@ class SettingsPage extends StatelessWidget {
   void _handleLogout(BuildContext context) async {
     await TokenManager.clearToken();
 
-    // Navigate to LoginPage and remove all previous routes (so user can't go back)
     Navigator.pushAndRemoveUntil(
       context,
       MaterialPageRoute(builder: (_) => const LoginPage()),
@@ -18,13 +19,21 @@ class SettingsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final themeManager = Provider.of<ThemeManager>(context);
+    final isDark = themeManager.themeMode == ThemeMode.dark;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        title: const Text(
+        backgroundColor:
+            theme.appBarTheme.backgroundColor ?? theme.colorScheme.surface,
+        title: Text(
           'Settings',
-          style: TextStyle(color: Colors.white),
+          style: theme.appBarTheme.titleTextStyle ??
+              TextStyle(color: theme.colorScheme.onSurface),
         ),
+        iconTheme: theme.appBarTheme.iconTheme ??
+            IconThemeData(color: theme.colorScheme.onSurface),
       ),
       body: ListView(
         children: [
@@ -37,14 +46,26 @@ class SettingsPage extends StatelessWidget {
               'User Info',
               style: TextStyle(fontSize: 18),
             ),
-            subtitle: const Text(
-                'Muhammadhsamir11@gmail.com'), // Replace with actual user info later
+            subtitle: const Text('Muhammadhsamir11@gmail.com'),
             onTap: () {},
           ),
 
           const Divider(),
 
-          // Logout Button
+          // Dark Mode Toggle
+          SwitchListTile(
+            secondary: const Icon(Icons.brightness_6),
+            title: const Text(
+              'Dark Mode',
+              style: TextStyle(fontSize: 18),
+            ),
+            value: isDark,
+            onChanged: (value) => themeManager.toggleTheme(value),
+          ),
+
+          const Divider(),
+
+          // Logout
           ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
             title: const Text(

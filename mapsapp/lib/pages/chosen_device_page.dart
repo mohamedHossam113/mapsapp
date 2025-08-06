@@ -9,22 +9,29 @@ class ChosenDevicePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final isMoving = device.status.toLowerCase() == 'moving';
+    final textColor = theme.colorScheme.onSurface;
+    final cardColor = theme.cardColor;
 
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: theme.colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.black,
-        iconTheme: const IconThemeData(color: Colors.white),
+        backgroundColor:
+            theme.appBarTheme.backgroundColor ?? theme.colorScheme.surface,
+        iconTheme: IconThemeData(color: textColor),
         title: Text(
           device.name,
-          style: const TextStyle(color: Colors.white),
+          style: theme.textTheme.titleLarge?.copyWith(
+            color: textColor,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Card(
-          color: Colors.grey.shade900,
+          color: cardColor,
           elevation: 4,
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -43,24 +50,24 @@ class ChosenDevicePage extends StatelessWidget {
                     const SizedBox(width: 10),
                     Text(
                       isMoving ? 'Moving' : 'Stopped',
-                      style: const TextStyle(fontSize: 18, color: Colors.white),
+                      style: TextStyle(fontSize: 18, color: textColor),
                     ),
                   ],
                 ),
                 const SizedBox(height: 20),
                 Text(
                   'Speed: ${device.speed.toStringAsFixed(1)} km/h',
-                  style: const TextStyle(fontSize: 16, color: Colors.white),
+                  style: TextStyle(fontSize: 16, color: textColor),
                 ),
                 const SizedBox(height: 10),
                 Text(
                   'Latitude: ${device.latitude}',
-                  style: const TextStyle(fontSize: 16, color: Colors.white),
+                  style: TextStyle(fontSize: 16, color: textColor),
                 ),
                 const SizedBox(height: 10),
                 Text(
                   'Longitude: ${device.longitude}',
-                  style: const TextStyle(fontSize: 16, color: Colors.white),
+                  style: TextStyle(fontSize: 16, color: textColor),
                 ),
               ],
             ),

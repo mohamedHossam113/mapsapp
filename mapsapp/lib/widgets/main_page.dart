@@ -21,34 +21,31 @@ class _MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final navBarTheme = theme.bottomNavigationBarTheme;
+
     return Scaffold(
       body: _pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
-        backgroundColor: Colors.black,
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.grey,
+        backgroundColor:
+            navBarTheme.backgroundColor ?? theme.scaffoldBackgroundColor,
+        selectedItemColor:
+            navBarTheme.selectedItemColor ?? theme.colorScheme.primary,
+        unselectedItemColor:
+            navBarTheme.unselectedItemColor ?? theme.unselectedWidgetColor,
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
         items: const [
           BottomNavigationBarItem(
-            icon: Icon(
-              Icons.home_filled,
-              color: Colors.white,
-            ),
+            icon: Icon(Icons.home_filled),
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(
-              Icons.directions_car_filled_sharp,
-              color: Colors.white,
-            ),
+            icon: Icon(Icons.directions_car_filled_sharp),
             label: 'Devices',
           ),
           BottomNavigationBarItem(
-            icon: Icon(
-              Icons.settings,
-              color: Colors.white,
-            ),
+            icon: Icon(Icons.settings),
             label: 'Settings',
           ),
         ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:mapsapp/widgets/device_list.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:mapsapp/models/place_model.dart';
 import 'package:mapsapp/services/location_service.dart';
@@ -23,8 +24,6 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
   @override
   bool get wantKeepAlive => true;
 
-  List<DeviceModel> allDevices = [];
-  List<DeviceModel> filteredDevices = [];
   late CameraPosition initialCameraPosition;
   GoogleMapController? googleMapController;
   Set<Marker> markers = {};
@@ -57,10 +56,6 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
       }
     });
 
-    _searchController.addListener(() {
-      filterDevices(_searchController.text);
-    });
-
     final cubit = context.read<DeviceCubit>();
     cubit.setOnDeviceUpdate((deviceId, data) {
       if (!_isMounted || !mounted) return;
@@ -72,8 +67,8 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
       final status = data['status'] ?? 'unknown';
       final newPos = LatLng(lat, lng);
 
-      // <--- REPLACE THIS setState BLOCK WITH THE ONE I PROVIDED
       setState(() {
+        // Update marker
         markers = {
           for (final marker in markers)
             if (marker.markerId.value != deviceId) marker,
@@ -89,51 +84,13 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
               title: deviceId,
               snippet: 'Speed: $speed km/h\nStatus: $status',
             ),
-          )
+          ),
         };
-
-        final index = allDevices.indexWhere((d) => d.id == deviceId);
-        if (index != -1) {
-          final updated = allDevices[index].copyWith(
-            latitude: lat,
-            longitude: lng,
-            speed: speed.toInt(),
-            status: status,
-          );
-          allDevices = [
-            for (int i = 0; i < allDevices.length; i++)
-              if (i == index) updated else allDevices[i]
-          ];
-          filteredDevices = [
-            for (final d in filteredDevices) d.id == deviceId ? updated : d
-          ];
-        }
-
-        if (selectedDevice?.id == deviceId) {
-          selectedDevice = selectedDevice!.copyWith(
-            latitude: lat,
-            longitude: lng,
-            speed: speed.toInt(),
-            status: status,
-          );
-        }
       });
     });
 
     cubit.fetchDevices();
     context.read<GeofenceCubit>().fetchGeofences();
-  }
-
-  void filterDevices(String query) {
-    final filtered = allDevices.where((device) {
-      final name = device.name.toLowerCase();
-      return name.contains(query.toLowerCase());
-    }).toList();
-
-    if (!_isMounted || !mounted) return;
-    setState(() {
-      filteredDevices = filtered;
-    });
   }
 
   @override
@@ -148,27 +105,29 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textColor = colorScheme.onSurface;
+    final cardColor = theme.cardColor;
+
     return MultiBlocListener(
       listeners: [
-        // In CustomGooglemaps build method, update the BlocListener
         BlocListener<DeviceCubit, DeviceState>(
           listener: (context, state) {
             if (!_isMounted || !mounted) return;
 
             if (state is DeviceLoaded) {
-              setState(() {
-                allDevices = state.devices;
-                filteredDevices = state.devices;
-              });
               initDeviceMarkers(state.devices);
 
-              // Keep selected device in sync
+              // Update selected device if still showing
               if (selectedDevice != null) {
-                final updatedDevice = state.devices.firstWhere(
+                final updated = state.devices.firstWhere(
                   (d) => d.id == selectedDevice!.id,
                   orElse: () => selectedDevice!,
                 );
-                selectedDevice = updatedDevice;
+                setState(() {
+                  selectedDevice = updated;
+                });
               }
             }
           },
@@ -176,7 +135,6 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
         BlocListener<GeofenceCubit, GeofenceState>(
           listener: (context, state) {
             if (!_isMounted || !mounted) return;
-
             if (state is GeofenceLoaded) {
               loadGeofences(state.geofences);
             }
@@ -184,18 +142,34 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
         ),
       ],
       child: Scaffold(
+        backgroundColor: theme.colorScheme.surface,
         body: SlidingUpPanel(
-          backdropColor: Colors.black,
+          backdropColor: theme.colorScheme.surface,
           controller: _panelController,
           minHeight: 80,
           maxHeight: selectedDevice != null
               ? 250
               : MediaQuery.of(context).size.height * 0.5,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          color: Colors.black,
+          color: theme.bottomSheetTheme.backgroundColor ??
+              theme.colorScheme.surface,
           panelBuilder: (ScrollController sc) => selectedDevice != null
-              ? _buildSelectedDeviceCard()
-              : _buildDeviceList(sc),
+              ? _buildSelectedDeviceCard(theme, textColor, cardColor)
+              : DeviceListWidget(
+                  scrollController: sc,
+                  searchController: _searchController,
+                  searchFocusNode: _searchFocusNode,
+                  onDeviceTap: (device) async {
+                    await googleMapController?.animateCamera(
+                      CameraUpdate.newLatLng(
+                        LatLng(device.latitude, device.longitude),
+                      ),
+                    );
+                    setState(() {
+                      selectedDevice = device;
+                    });
+                  },
+                ),
           body: GoogleMap(
             zoomControlsEnabled: false,
             circles: circles,
@@ -211,13 +185,14 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
     );
   }
 
-  Widget _buildSelectedDeviceCard() {
+  Widget _buildSelectedDeviceCard(
+      ThemeData theme, Color textColor, Color cardColor) {
     final isMoving = selectedDevice!.speed > 0;
 
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Card(
-        color: Colors.grey.shade900,
+        color: cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -228,7 +203,7 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
               Align(
                 alignment: Alignment.topRight,
                 child: IconButton(
-                  icon: const Icon(Icons.close, color: Colors.white),
+                  icon: Icon(Icons.close, color: textColor),
                   onPressed: () {
                     setState(() {
                       selectedDevice = null;
@@ -247,10 +222,9 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
                   Expanded(
                     child: Text(
                       selectedDevice!.name,
-                      style: const TextStyle(
-                        fontSize: 18,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: textColor,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
                       ),
                     ),
                   ),
@@ -258,95 +232,15 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
               ),
               const SizedBox(height: 12),
               Text('Speed: ${selectedDevice!.speed} km/h',
-                  style: const TextStyle(color: Colors.white)),
+                  style: TextStyle(color: textColor)),
               Text('State: ${isMoving ? "Moving" : "Stopped"}',
-                  style: const TextStyle(color: Colors.white)),
+                  style: TextStyle(color: textColor)),
               Text(
                   'lat and lng: ${selectedDevice!.latitude}, ${selectedDevice!.longitude}',
-                  style: const TextStyle(color: Colors.white)),
+                  style: TextStyle(color: textColor)),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildDeviceList(ScrollController sc) {
-    return Container(
-      decoration: const BoxDecoration(color: Colors.black),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(10),
-            child: TextField(
-              controller: _searchController,
-              focusNode: _searchFocusNode,
-              decoration: const InputDecoration(
-                focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white)),
-                enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Colors.white)),
-                hintText: 'Search devices...',
-                hintStyle: TextStyle(color: Colors.grey),
-                prefixIcon: Icon(Icons.search, color: Colors.white),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(12)),
-                ),
-              ),
-              style: const TextStyle(color: Colors.white),
-            ),
-          ),
-          Expanded(
-            child: filteredDevices.isEmpty
-                ? const Center(
-                    child: Text('No devices found.',
-                        style: TextStyle(color: Colors.white)),
-                  )
-                : ListView.builder(
-                    controller: sc,
-                    itemCount: filteredDevices.length,
-                    itemBuilder: (context, index) {
-                      final device = filteredDevices[index];
-                      final isMoving = device.speed > 0;
-
-                      return Card(
-                        color: Colors.grey.shade900,
-                        margin: const EdgeInsets.only(bottom: 16),
-                        child: ListTile(
-                          onTap: () async {
-                            await googleMapController?.animateCamera(
-                              CameraUpdate.newLatLng(
-                                LatLng(device.latitude, device.longitude),
-                              ),
-                            );
-                            setState(() {
-                              selectedDevice = device;
-                            });
-                          },
-                          leading: Icon(
-                            isMoving ? Icons.directions_car : Icons.stop_circle,
-                            color: isMoving ? Colors.green : Colors.red,
-                          ),
-                          title: Text(device.name,
-                              style: const TextStyle(color: Colors.white)),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text('Speed: ${device.speed} km/h',
-                                  style: const TextStyle(color: Colors.white)),
-                              Text('State: ${isMoving ? "Moving" : "Stopped"}',
-                                  style: const TextStyle(color: Colors.white)),
-                              Text(
-                                  'lat and lng: ${device.latitude}, ${device.longitude}',
-                                  style: const TextStyle(color: Colors.white)),
-                            ],
-                          ),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
       ),
     );
   }
@@ -400,11 +294,10 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
     });
   }
 
-// Update initDeviceMarkers in custom_googlemaps.dart
   void initDeviceMarkers(List<DeviceModel> devices) {
     final deviceMarkers = devices.map((device) {
       return Marker(
-        markerId: MarkerId(device.id),
+        markerId: MarkerId(device.name),
         position: LatLng(device.latitude, device.longitude),
         icon: BitmapDescriptor.defaultMarkerWithHue(
           device.status.toLowerCase() == 'moving'
@@ -419,7 +312,6 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
     }).toSet();
 
     setState(() {
-      // Clear only device markers (keep places markers)
       markers.removeWhere((m) => m.markerId.value.startsWith('device-'));
       markers.addAll(deviceMarkers);
     });

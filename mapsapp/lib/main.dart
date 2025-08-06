@@ -9,6 +9,8 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:mapsapp/services/device_service.dart';
 import 'package:mapsapp/services/geofence_service.dart';
 import 'package:mapsapp/widgets/main_page.dart';
+import 'package:provider/provider.dart';
+import 'package:mapsapp/management/theme_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +22,25 @@ class TestGoogleMapsWithFlutter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return ChangeNotifierProvider(
+      create: (_) => ThemeManager(),
+      child: const _AppInitializer(),
+    );
+  }
+}
+
+class _AppInitializer extends StatelessWidget {
+  const _AppInitializer({super.key});
+
+  Future<String?> _getSavedToken() async {
+    const storage = FlutterSecureStorage();
+    return await storage.read(key: 'token');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final themeManager = Provider.of<ThemeManager>(context);
+
     return FutureBuilder<String?>(
       future: _getSavedToken(),
       builder: (context, snapshot) {
@@ -41,6 +62,41 @@ class TestGoogleMapsWithFlutter extends StatelessWidget {
           ],
           child: MaterialApp(
             debugShowCheckedModeBanner: false,
+            theme: ThemeData(
+              brightness: Brightness.light,
+              scaffoldBackgroundColor: Colors.white,
+              cardColor: Colors.grey.shade100,
+              colorScheme: const ColorScheme.light(
+                background: Colors.white,
+                primary: Colors.black,
+                error: Colors.red,
+              ),
+              bottomSheetTheme: const BottomSheetThemeData(
+                backgroundColor: Colors.transparent,
+              ),
+              textTheme: const TextTheme(
+                titleLarge: TextStyle(color: Colors.black),
+                bodyMedium: TextStyle(color: Colors.black87),
+              ),
+            ),
+            darkTheme: ThemeData(
+              brightness: Brightness.dark,
+              scaffoldBackgroundColor: Colors.black,
+              cardColor: Colors.grey.shade900,
+              colorScheme: ColorScheme.dark(
+                background: Colors.black,
+                primary: Colors.white,
+                error: Colors.redAccent,
+              ),
+              bottomSheetTheme: const BottomSheetThemeData(
+                backgroundColor: Colors.transparent,
+              ),
+              textTheme: const TextTheme(
+                titleLarge: TextStyle(color: Colors.white),
+                bodyMedium: TextStyle(color: Colors.white70),
+              ),
+            ),
+            themeMode: themeManager.themeMode,
             home: token != null && token.isNotEmpty
                 ? const MainPage()
                 : const LoginPage(),
@@ -48,10 +104,5 @@ class TestGoogleMapsWithFlutter extends StatelessWidget {
         );
       },
     );
-  }
-
-  Future<String?> _getSavedToken() async {
-    const storage = FlutterSecureStorage();
-    return await storage.read(key: 'token');
   }
 }

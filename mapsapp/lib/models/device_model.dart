@@ -1,4 +1,6 @@
-class DeviceModel {
+import 'package:equatable/equatable.dart';
+
+class DeviceModel extends Equatable {
   final String id;
   final String name;
   final double latitude;
@@ -6,7 +8,7 @@ class DeviceModel {
   final String status;
   final int speed;
 
-  DeviceModel({
+  const DeviceModel({
     required this.id,
     required this.name,
     required this.latitude,
@@ -17,7 +19,6 @@ class DeviceModel {
 
   factory DeviceModel.fromJson(Map<String, dynamic> json) {
     final coords = json['coords'] ?? {};
-
     return DeviceModel(
       id: json['_id'] ?? '',
       name: json['name'] ?? 'Unknown',
@@ -45,4 +46,7 @@ class DeviceModel {
       speed: speed ?? this.speed,
     );
   }
+
+  @override
+  List<Object?> get props => [id, name, latitude, longitude, status, speed];
 }
