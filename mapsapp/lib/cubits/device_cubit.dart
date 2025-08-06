@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mapsapp/models/device_model.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:mapsapp/cubits/devices_state.dart';
 import 'package:mapsapp/services/device_service.dart';
@@ -62,22 +63,33 @@ class DeviceCubit extends Cubit<DeviceState> {
         _socket!.emit('subscribe');
       });
 
+      // Update the socket message handler
+      // Update the socket handler again
       _socket!.on('device-location-update', (data) {
         log('📡 Received device update: $data');
 
         try {
-          final parsed = data is String ? jsonDecode(data) : data;
-          final messageStr = parsed['message'];
-          final messageJson = jsonDecode(messageStr);
-          final device = messageJson['device'];
-          final deviceId = device['deviceId'];
+          dynamic parsed = data;
+          if (data is String) {
+            parsed = jsonDecode(data);
+          }
 
-          _onDeviceUpdate?.call(deviceId, device);
+          if (parsed['message'] != null) {
+            final messageStr = parsed['message'];
+            final messageJson = jsonDecode(messageStr);
+            final deviceData = messageJson['device'];
+            final deviceId = deviceData['deviceId'];
+
+            // Use the new state update method
+            updateDevice(deviceId, deviceData);
+
+            // Also trigger the callback for direct UI updates
+            _onDeviceUpdate?.call(deviceId, deviceData);
+          }
         } catch (e) {
           log('❌ Failed to parse message: $e');
         }
       });
-
       _socket!.onConnectError((err) => log('❌ Connect error: $err'));
       _socket!.onError((err) => log('❌ Socket.IO error: $err'));
       _socket!.onDisconnect((_) => log('🔌 Disconnected from Socket.IO'));
@@ -85,6 +97,35 @@ class DeviceCubit extends Cubit<DeviceState> {
       _socket!.connect();
     } catch (e) {
       log('❌ Socket initialization error: $e');
+    }
+  }
+
+  // Add this method to DeviceCubit
+  void updateDevice(String deviceId, Map<String, dynamic> updateData) {
+    if (state is DeviceLoaded) {
+      final currentState = state as DeviceLoaded;
+      final devices = currentState.devices;
+
+      final deviceIndex = devices.indexWhere((d) => d.id == deviceId);
+      if (deviceIndex != -1) {
+        final device = devices[deviceIndex];
+
+        // Create updated device
+        final updatedDevice = device.copyWith(
+          latitude: (updateData['coords']['lat'] ?? device.latitude).toDouble(),
+          longitude:
+              (updateData['coords']['lng'] ?? device.longitude).toDouble(),
+          speed: (updateData['speed'] ?? device.speed).toInt(),
+          status: updateData['status'] ?? device.status,
+        );
+
+        // Update device list
+        final updatedDevices = List<DeviceModel>.from(devices);
+        updatedDevices[deviceIndex] = updatedDevice;
+
+        // Emit new state
+        emit(DeviceLoaded(updatedDevices));
+      }
     }
   }
 

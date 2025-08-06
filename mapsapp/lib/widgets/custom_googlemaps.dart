@@ -72,6 +72,7 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
       final status = data['status'] ?? 'unknown';
       final newPos = LatLng(lat, lng);
 
+      // <--- REPLACE THIS setState BLOCK WITH THE ONE I PROVIDED
       setState(() {
         markers = {
           for (final marker in markers)
@@ -99,7 +100,13 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
             speed: speed.toInt(),
             status: status,
           );
-          allDevices[index] = updated;
+          allDevices = [
+            for (int i = 0; i < allDevices.length; i++)
+              if (i == index) updated else allDevices[i]
+          ];
+          filteredDevices = [
+            for (final d in filteredDevices) d.id == deviceId ? updated : d
+          ];
         }
 
         if (selectedDevice?.id == deviceId) {
@@ -143,6 +150,7 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
     super.build(context);
     return MultiBlocListener(
       listeners: [
+        // In CustomGooglemaps build method, update the BlocListener
         BlocListener<DeviceCubit, DeviceState>(
           listener: (context, state) {
             if (!_isMounted || !mounted) return;
@@ -153,6 +161,15 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
                 filteredDevices = state.devices;
               });
               initDeviceMarkers(state.devices);
+
+              // Keep selected device in sync
+              if (selectedDevice != null) {
+                final updatedDevice = state.devices.firstWhere(
+                  (d) => d.id == selectedDevice!.id,
+                  orElse: () => selectedDevice!,
+                );
+                selectedDevice = updatedDevice;
+              }
             }
           },
         ),
@@ -383,6 +400,7 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
     });
   }
 
+// Update initDeviceMarkers in custom_googlemaps.dart
   void initDeviceMarkers(List<DeviceModel> devices) {
     final deviceMarkers = devices.map((device) {
       return Marker(
@@ -401,6 +419,8 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
     }).toSet();
 
     setState(() {
+      // Clear only device markers (keep places markers)
+      markers.removeWhere((m) => m.markerId.value.startsWith('device-'));
       markers.addAll(deviceMarkers);
     });
   }
