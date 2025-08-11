@@ -68,10 +68,13 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
       final newPos = LatLng(lat, lng);
 
       setState(() {
-        // Update marker
-        markers = {
-          for (final marker in markers)
-            if (marker.markerId.value != deviceId) marker,
+        // Remove old marker for this device
+        markers.removeWhere((marker) =>
+            marker.markerId.value == deviceId ||
+            marker.markerId.value.contains(deviceId));
+
+        // Add updated marker
+        markers.add(
           Marker(
             markerId: MarkerId(deviceId),
             position: newPos,
@@ -85,7 +88,7 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
               snippet: 'Speed: $speed km/h\nStatus: $status',
             ),
           ),
-        };
+        );
       });
     });
 
@@ -125,9 +128,11 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
                   (d) => d.id == selectedDevice!.id,
                   orElse: () => selectedDevice!,
                 );
-                setState(() {
-                  selectedDevice = updated;
-                });
+                if (updated != selectedDevice) {
+                  setState(() {
+                    selectedDevice = updated;
+                  });
+                }
               }
             }
           },
@@ -148,7 +153,7 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
           controller: _panelController,
           minHeight: 80,
           maxHeight: selectedDevice != null
-              ? 250
+              ? 300
               : MediaQuery.of(context).size.height * 0.5,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           color: theme.bottomSheetTheme.backgroundColor ??
@@ -187,61 +192,140 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
 
   Widget _buildSelectedDeviceCard(
       ThemeData theme, Color textColor, Color cardColor) {
-    final isMoving = selectedDevice!.speed > 0;
+    if (selectedDevice == null) return const SizedBox.shrink();
 
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Card(
-        color: cardColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: Padding(
+    // Listen for updates to the selected device
+    return BlocBuilder<DeviceCubit, DeviceState>(
+      buildWhen: (previous, current) {
+        // Only rebuild if our selected device has changed
+        if (current is DeviceLoaded &&
+            previous is DeviceLoaded &&
+            selectedDevice != null) {
+          final oldDevice = previous.devices.firstWhere(
+            (d) => d.id == selectedDevice!.id,
+            orElse: () => selectedDevice!,
+          );
+          final newDevice = current.devices.firstWhere(
+            (d) => d.id == selectedDevice!.id,
+            orElse: () => selectedDevice!,
+          );
+
+          if (newDevice != oldDevice) {
+            // Update the selected device with new data
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (mounted && _isMounted) {
+                setState(() {
+                  selectedDevice = newDevice;
+                });
+              }
+            });
+          }
+          return newDevice != oldDevice;
+        }
+        return false;
+      },
+      builder: (context, state) {
+        // Update selectedDevice if state has new data
+        if (state is DeviceLoaded && selectedDevice != null) {
+          final updatedDevice = state.devices.firstWhere(
+            (d) => d.id == selectedDevice!.id,
+            orElse: () => selectedDevice!,
+          );
+          if (updatedDevice != selectedDevice) {
+            selectedDevice = updatedDevice;
+          }
+        }
+
+        final isMoving = selectedDevice!.speed > 0;
+
+        return Padding(
           padding: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Align(
-                alignment: Alignment.topRight,
-                child: IconButton(
-                  icon: Icon(Icons.close, color: textColor),
-                  onPressed: () {
-                    setState(() {
-                      selectedDevice = null;
-                    });
-                  },
-                ),
-              ),
-              const SizedBox(height: 8),
-              Row(
+          child: Card(
+            color: cardColor,
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(
-                    isMoving ? Icons.directions_car : Icons.stop_circle,
-                    color: isMoving ? Colors.green : Colors.red,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      selectedDevice!.name,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: textColor,
-                        fontWeight: FontWeight.bold,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      // Live indicator
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.green,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 6,
+                              height: 6,
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Text(
+                              'LIVE',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
+                      IconButton(
+                        icon: Icon(Icons.close, color: textColor),
+                        onPressed: () {
+                          setState(() {
+                            selectedDevice = null;
+                          });
+                        },
+                      ),
+                    ],
                   ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Icon(
+                        isMoving ? Icons.directions_car : Icons.stop_circle,
+                        color: isMoving ? Colors.green : Colors.red,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          selectedDevice!.name,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            color: textColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text('Speed: ${selectedDevice!.speed} km/h',
+                      style: TextStyle(color: textColor)),
+                  Text('State: ${isMoving ? "Moving" : "Stopped"}',
+                      style: TextStyle(color: textColor)),
+                  Text('Updated: ${_formatTime(selectedDevice!.lastUpdated)}',
+                      style: TextStyle(color: Colors.grey, fontSize: 12)),
                 ],
               ),
-              const SizedBox(height: 12),
-              Text('Speed: ${selectedDevice!.speed} km/h',
-                  style: TextStyle(color: textColor)),
-              Text('State: ${isMoving ? "Moving" : "Stopped"}',
-                  style: TextStyle(color: textColor)),
-              Text(
-                  'lat and lng: ${selectedDevice!.latitude}, ${selectedDevice!.longitude}',
-                  style: TextStyle(color: textColor)),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -297,7 +381,7 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
   void initDeviceMarkers(List<DeviceModel> devices) {
     final deviceMarkers = devices.map((device) {
       return Marker(
-        markerId: MarkerId(device.name),
+        markerId: MarkerId(device.id),
         position: LatLng(device.latitude, device.longitude),
         icon: BitmapDescriptor.defaultMarkerWithHue(
           device.status.toLowerCase() == 'moving'
@@ -312,8 +396,23 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
     }).toSet();
 
     setState(() {
-      markers.removeWhere((m) => m.markerId.value.startsWith('device-'));
+      // Remove old device markers (keep place markers)
+      markers.removeWhere((m) => devices.any((device) =>
+          device.id == m.markerId.value || device.name == m.markerId.value));
       markers.addAll(deviceMarkers);
     });
+  }
+
+  String _formatTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final difference = now.difference(dateTime);
+
+    if (difference.inSeconds < 60) {
+      return 'Just now';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes}m ago';
+    } else {
+      return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    }
   }
 }

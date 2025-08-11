@@ -14,7 +14,24 @@ import 'package:mapsapp/management/theme_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const TestGoogleMapsWithFlutter());
+
+  // Create services and cubits only once
+  final deviceService = DeviceService();
+  final deviceCubit = DeviceCubit(deviceService);
+  final authCubit = AuthCubit(AuthService());
+  final geofenceCubit = GeofenceCubit(GeofenceService());
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeManager()),
+        BlocProvider<DeviceCubit>.value(value: deviceCubit),
+        BlocProvider<AuthCubit>.value(value: authCubit),
+        BlocProvider<GeofenceCubit>.value(value: geofenceCubit),
+      ],
+      child: const TestGoogleMapsWithFlutter(),
+    ),
+  );
 }
 
 class TestGoogleMapsWithFlutter extends StatelessWidget {
@@ -22,15 +39,12 @@ class TestGoogleMapsWithFlutter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => ThemeManager(),
-      child: const _AppInitializer(),
-    );
+    return const _AppInitializer();
   }
 }
 
 class _AppInitializer extends StatelessWidget {
-  const _AppInitializer({super.key});
+  const _AppInitializer();
 
   Future<String?> _getSavedToken() async {
     const storage = FlutterSecureStorage();
@@ -54,53 +68,46 @@ class _AppInitializer extends StatelessWidget {
 
         final token = snapshot.data;
 
-        return MultiBlocProvider(
-          providers: [
-            BlocProvider(create: (_) => DeviceCubit(DeviceService())),
-            BlocProvider(create: (_) => AuthCubit(AuthService())),
-            BlocProvider(create: (_) => GeofenceCubit(GeofenceService())),
-          ],
-          child: MaterialApp(
-            debugShowCheckedModeBanner: false,
-            theme: ThemeData(
-              brightness: Brightness.light,
-              scaffoldBackgroundColor: Colors.white,
-              cardColor: Colors.grey.shade100,
-              colorScheme: const ColorScheme.light(
-                background: Colors.white,
-                primary: Colors.black,
-                error: Colors.red,
-              ),
-              bottomSheetTheme: const BottomSheetThemeData(
-                backgroundColor: Colors.transparent,
-              ),
-              textTheme: const TextTheme(
-                titleLarge: TextStyle(color: Colors.black),
-                bodyMedium: TextStyle(color: Colors.black87),
-              ),
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: ThemeData(
+            brightness: Brightness.light,
+            scaffoldBackgroundColor: Colors.white,
+            cardColor: Colors.grey.shade100,
+            colorScheme: const ColorScheme.light(
+              surface: Colors.white,
+              primary: Colors.black,
+              error: Colors.red,
             ),
-            darkTheme: ThemeData(
-              brightness: Brightness.dark,
-              scaffoldBackgroundColor: Colors.black,
-              cardColor: Colors.grey.shade900,
-              colorScheme: ColorScheme.dark(
-                background: Colors.black,
-                primary: Colors.white,
-                error: Colors.redAccent,
-              ),
-              bottomSheetTheme: const BottomSheetThemeData(
-                backgroundColor: Colors.transparent,
-              ),
-              textTheme: const TextTheme(
-                titleLarge: TextStyle(color: Colors.white),
-                bodyMedium: TextStyle(color: Colors.white70),
-              ),
+            bottomSheetTheme: const BottomSheetThemeData(
+              backgroundColor: Colors.transparent,
             ),
-            themeMode: themeManager.themeMode,
-            home: token != null && token.isNotEmpty
-                ? const MainPage()
-                : const LoginPage(),
+            textTheme: const TextTheme(
+              titleLarge: TextStyle(color: Colors.black),
+              bodyMedium: TextStyle(color: Colors.black87),
+            ),
           ),
+          darkTheme: ThemeData(
+            brightness: Brightness.dark,
+            scaffoldBackgroundColor: Colors.black,
+            cardColor: Colors.grey.shade900,
+            colorScheme: const ColorScheme.dark(
+              surface: Colors.black,
+              primary: Colors.white,
+              error: Colors.redAccent,
+            ),
+            bottomSheetTheme: const BottomSheetThemeData(
+              backgroundColor: Colors.transparent,
+            ),
+            textTheme: const TextTheme(
+              titleLarge: TextStyle(color: Colors.white),
+              bodyMedium: TextStyle(color: Colors.white70),
+            ),
+          ),
+          themeMode: themeManager.themeMode,
+          home: token != null && token.isNotEmpty
+              ? const MainPage()
+              : const LoginPage(),
         );
       },
     );

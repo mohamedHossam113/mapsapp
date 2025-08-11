@@ -7,6 +7,7 @@ class DeviceModel extends Equatable {
   final double longitude;
   final String status;
   final int speed;
+  final DateTime lastUpdated; // Add explicit timestamp
 
   const DeviceModel({
     required this.id,
@@ -15,6 +16,7 @@ class DeviceModel extends Equatable {
     required this.longitude,
     required this.status,
     required this.speed,
+    required this.lastUpdated,
   });
 
   factory DeviceModel.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class DeviceModel extends Equatable {
       longitude: (coords['lng'] ?? 0).toDouble(),
       status: json['status'] ?? 'unknown',
       speed: json['speed'] ?? 0,
+      lastUpdated: DateTime.now(),
     );
   }
 
@@ -36,6 +39,7 @@ class DeviceModel extends Equatable {
     double? longitude,
     String? status,
     int? speed,
+    DateTime? lastUpdated,
   }) {
     return DeviceModel(
       id: id ?? this.id,
@@ -44,9 +48,18 @@ class DeviceModel extends Equatable {
       longitude: longitude ?? this.longitude,
       status: status ?? this.status,
       speed: speed ?? this.speed,
+      lastUpdated: lastUpdated ?? DateTime.now(), // Update timestamp on changes
     );
   }
 
   @override
-  List<Object?> get props => [id, name, latitude, longitude, status, speed];
+  List<Object?> get props => [
+        id,
+        name,
+        latitude,
+        longitude,
+        status,
+        speed,
+        lastUpdated, // Use the explicit timestamp
+      ];
 }

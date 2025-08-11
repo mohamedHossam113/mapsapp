@@ -84,8 +84,7 @@ class DeviceListWidget extends StatelessWidget {
                           final isMoving = device.speed > 0;
 
                           return Card(
-                            key: ValueKey(device.id), // 🟢 ADD THIS LINE
-
+                            key: ValueKey(device.id + device.status),
                             color: cardColor,
                             margin: const EdgeInsets.symmetric(
                                 horizontal: 12, vertical: 8),
@@ -120,11 +119,6 @@ class DeviceListWidget extends StatelessWidget {
                                     style: theme.textTheme.bodySmall
                                         ?.copyWith(color: textColor),
                                   ),
-                                  Text(
-                                    'lat and lng: ${device.latitude}, ${device.longitude}',
-                                    style: theme.textTheme.bodySmall
-                                        ?.copyWith(color: textColor),
-                                  ),
                                 ],
                               ),
                             ),
@@ -136,7 +130,7 @@ class DeviceListWidget extends StatelessWidget {
           );
         }
 
-        return const SizedBox.shrink(); // default fallback
+        return const SizedBox.shrink();
       },
     );
   }
