@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'; // ✅ Add this import
 import 'package:mapsapp/cubits/auth_cubit.dart';
 import 'package:mapsapp/cubits/device_cubit.dart';
 import 'package:mapsapp/cubits/geofence_cubit.dart';
+import 'package:mapsapp/cubits/l10n/applocalization.dart';
+import 'package:mapsapp/management/language_management.dart';
 import 'package:mapsapp/pages/login_page.dart';
 import 'package:mapsapp/services/auth_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -15,23 +18,7 @@ import 'package:mapsapp/management/theme_manager.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Create services and cubits only once
-  final deviceService = DeviceService();
-  final deviceCubit = DeviceCubit(deviceService);
-  final authCubit = AuthCubit(AuthService());
-  final geofenceCubit = GeofenceCubit(GeofenceService());
-
-  runApp(
-    MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => ThemeManager()),
-        BlocProvider<DeviceCubit>.value(value: deviceCubit),
-        BlocProvider<AuthCubit>.value(value: authCubit),
-        BlocProvider<GeofenceCubit>.value(value: geofenceCubit),
-      ],
-      child: const TestGoogleMapsWithFlutter(),
-    ),
-  );
+  runApp(const TestGoogleMapsWithFlutter());
 }
 
 class TestGoogleMapsWithFlutter extends StatelessWidget {
@@ -39,7 +26,22 @@ class TestGoogleMapsWithFlutter extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const _AppInitializer();
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ThemeManager()),
+        ChangeNotifierProvider(create: (_) => LanguageManager()),
+        BlocProvider<DeviceCubit>(
+          create: (context) => DeviceCubit(DeviceService()),
+        ),
+        BlocProvider<AuthCubit>(
+          create: (context) => AuthCubit(AuthService()),
+        ),
+        BlocProvider<GeofenceCubit>(
+          create: (context) => GeofenceCubit(GeofenceService()),
+        ),
+      ],
+      child: const _AppInitializer(),
+    );
   }
 }
 
@@ -54,6 +56,7 @@ class _AppInitializer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeManager = Provider.of<ThemeManager>(context);
+    final languageManager = Provider.of<LanguageManager>(context); // ✅ Add this
 
     return FutureBuilder<String?>(
       future: _getSavedToken(),
@@ -70,6 +73,15 @@ class _AppInitializer extends StatelessWidget {
 
         return MaterialApp(
           debugShowCheckedModeBanner: false,
+          // ✅ Add localization support
+          locale: languageManager.currentLocale,
+          supportedLocales: languageManager.supportedLocales,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           theme: ThemeData(
             brightness: Brightness.light,
             scaffoldBackgroundColor: Colors.white,
