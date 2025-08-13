@@ -4,8 +4,6 @@ import 'package:mapsapp/cubits/device_cubit.dart';
 import 'package:mapsapp/cubits/devices_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:mapsapp/widgets/main_page.dart';
-
 import '../generated/l10n.dart';
 
 class ChosenDevicePage extends StatefulWidget {
