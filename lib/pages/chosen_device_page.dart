@@ -37,7 +37,7 @@ class _ChosenDevicePageState extends State<ChosenDevicePage> {
             theme.appBarTheme.backgroundColor ?? theme.colorScheme.surface,
         iconTheme: IconThemeData(color: textColor),
         title: Text(
-          currentDevice.name,
+          "",
           style: theme.textTheme.titleLarge?.copyWith(
             color: textColor,
             fontWeight: FontWeight.bold,
@@ -122,34 +122,12 @@ class _ChosenDevicePageState extends State<ChosenDevicePage> {
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  isMoving
-                                      ? S.of(context).moving
-                                      : S.of(context).stopped,
-                                  style:
-                                      TextStyle(fontSize: 18, color: textColor),
-                                ),
-                              ),
-                              // Live indicator
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: Colors.green,
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Container(
-                                      width: 6,
-                                      height: 6,
-                                      decoration: const BoxDecoration(
-                                        color: Colors.white,
-                                        shape: BoxShape.circle,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 4),
-                                  ],
+                                  currentDevice.name,
+                                  style: theme.textTheme.titleLarge?.copyWith(
+                                    color: textColor,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
