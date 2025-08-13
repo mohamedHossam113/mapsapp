@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mapsapp/cubits/auth_cubit.dart';
 import 'package:mapsapp/cubits/auth_state.dart';
+import 'package:mapsapp/generated/l10n.dart';
 import 'package:mapsapp/pages/registeration_page.dart';
 import 'package:mapsapp/widgets/custom_widget.dart';
 import 'package:mapsapp/widgets/main_page.dart';
@@ -61,9 +62,9 @@ class _LoginPageState extends State<LoginPage> {
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 50),
-                const Text(
-                  'Login',
-                  style: TextStyle(
+                Text(
+                  S.of(context).login,
+                  style: const TextStyle(
                     color: Colors.white,
                     fontSize: 20,
                     fontWeight: FontWeight.bold,
@@ -71,20 +72,22 @@ class _LoginPageState extends State<LoginPage> {
                 ),
                 const SizedBox(height: 20),
                 CustomWidget(
-                  hintText: 'Username',
+                  hintText: S.of(context).username,
                   onChanged: (value) {},
                   controller: emailController,
                 ),
                 const SizedBox(height: 20),
                 CustomWidget(
-                  hintText: 'Password',
+                  hintText: S.of(context).password,
                   onChanged: (value) {},
                   controller: passwordController,
                   obscureText: true,
                 ),
                 const SizedBox(height: 20),
                 MyButton(
-                  text: state is AuthLoading ? 'Loading...' : 'Sign In',
+                  text: state is AuthLoading
+                      ? '${S.of(context).loading}...'
+                      : S.of(context).sign_in,
                   onTap: () {
                     final username = emailController.text.trim();
                     final password = passwordController.text.trim();
@@ -93,8 +96,9 @@ class _LoginPageState extends State<LoginPage> {
                       context.read<AuthCubit>().login(username, password);
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Please enter username and password'),
+                        SnackBar(
+                          content: Text(
+                              S.of(context).please_enter_username_and_password),
                         ),
                       );
                     }
@@ -104,9 +108,9 @@ class _LoginPageState extends State<LoginPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      'Don\'t have an account?',
-                      style: TextStyle(
+                    Text(
+                      S.of(context).dont_have_account,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
@@ -121,9 +125,9 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                         );
                       },
-                      child: const Text(
-                        ' Register',
-                        style: TextStyle(
+                      child: Text(
+                        ' ${S.of(context).register}',
+                        style: const TextStyle(
                           color: Colors.blueAccent,
                           fontSize: 15,
                           fontWeight: FontWeight.bold,

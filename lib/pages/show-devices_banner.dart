@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mapsapp/cubits/device_cubit.dart';
 import 'package:mapsapp/cubits/devices_state.dart';
+import 'package:mapsapp/generated/l10n.dart';
 
 void showDevicesPanel(BuildContext context) {
   final theme = Theme.of(context);
@@ -42,7 +43,7 @@ void showDevicesPanel(BuildContext context) {
                         onPressed: () {
                           context.read<DeviceCubit>().fetchDevices();
                         },
-                        child: const Text('Retry'),
+                        child: Text(S.of(context).retry),
                       ),
                     ],
                   ),
@@ -58,7 +59,7 @@ void showDevicesPanel(BuildContext context) {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'No devices found.',
+                          S.of(context).no_devices_found,
                           style: TextStyle(
                               color: theme.textTheme.bodyMedium?.color),
                         ),
@@ -67,7 +68,7 @@ void showDevicesPanel(BuildContext context) {
                           onPressed: () {
                             context.read<DeviceCubit>().fetchDevices();
                           },
-                          child: const Text('Refresh'),
+                          child: Text(S.of(context).refresh),
                         ),
                       ],
                     ),
@@ -140,20 +141,20 @@ void showDevicesPanel(BuildContext context) {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Speed: ${device.speed.toStringAsFixed(1)} km/h',
+                                    '${S.of(context).speed}: ${device.speed.toStringAsFixed(1)} km/h',
                                     style: TextStyle(
                                         color:
                                             theme.textTheme.bodyMedium?.color),
                                   ),
                                   Text(
-                                    'State: ${device.status}',
+                                    '${S.of(context).state}: ${device.status}',
                                     style: TextStyle(
                                         color:
                                             theme.textTheme.bodyMedium?.color),
                                   ),
                                   Text(
-                                    'Updated: ${_formatTime(device.lastUpdated)}',
-                                    style: TextStyle(
+                                    '${S.of(context).updated}: ${_formatTime(device.lastUpdated)}',
+                                    style: const TextStyle(
                                         color: Colors.grey, fontSize: 12),
                                   ),
                                 ],

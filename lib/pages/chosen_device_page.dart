@@ -5,6 +5,8 @@ import 'package:mapsapp/cubits/devices_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../generated/l10n.dart';
+
 class ChosenDevicePage extends StatefulWidget {
   final DeviceModel device;
 
@@ -94,7 +96,8 @@ class _ChosenDevicePageState extends State<ChosenDevicePage> {
               currentDevice = updatedDevice;
             }
 
-            final isMoving = currentDevice.status.toLowerCase() == 'moving';
+            final isMoving =
+                currentDevice.status.toLowerCase() == S.of(context).moving;
 
             return Padding(
               padding: const EdgeInsets.all(16.0),
@@ -120,7 +123,9 @@ class _ChosenDevicePageState extends State<ChosenDevicePage> {
                               const SizedBox(width: 10),
                               Expanded(
                                 child: Text(
-                                  isMoving ? 'Moving' : 'Stopped',
+                                  isMoving
+                                      ? S.of(context).moving
+                                      : S.of(context).stopped,
                                   style:
                                       TextStyle(fontSize: 18, color: textColor),
                                 ),
@@ -145,38 +150,30 @@ class _ChosenDevicePageState extends State<ChosenDevicePage> {
                                       ),
                                     ),
                                     const SizedBox(width: 4),
-                                    const Text(
-                                      'LIVE',
-                                      style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
                                   ],
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 20),
-                          _buildInfoRow('Speed', '${currentDevice.speed} km/h',
-                              textColor),
+                          _buildInfoRow(S.of(context).speed,
+                              '${currentDevice.speed} km/h', textColor),
+                          const SizedBox(height: 10),
+                          _buildInfoRow(S.of(context).state,
+                              currentDevice.status, textColor),
                           const SizedBox(height: 10),
                           _buildInfoRow(
-                              'Status', currentDevice.status, textColor),
-                          const SizedBox(height: 10),
-                          _buildInfoRow(
-                              'Latitude',
+                              S.of(context).latitude,
                               currentDevice.latitude.toStringAsFixed(6),
                               textColor),
                           const SizedBox(height: 10),
                           _buildInfoRow(
-                              'Longitude',
+                              S.of(context).longitude,
                               currentDevice.longitude.toStringAsFixed(6),
                               textColor),
                           const SizedBox(height: 10),
                           _buildInfoRow(
-                              'Last Updated',
+                              S.of(context).last_updated,
                               _formatTime(currentDevice.lastUpdated),
                               textColor),
                         ],
@@ -194,7 +191,7 @@ class _ChosenDevicePageState extends State<ChosenDevicePage> {
                             Navigator.pop(context);
                           },
                           icon: const Icon(Icons.map),
-                          label: const Text('View on Map'),
+                          label: Text(S.of(context).view_on_map),
                         ),
                       ),
                       const SizedBox(width: 16),
@@ -204,7 +201,7 @@ class _ChosenDevicePageState extends State<ChosenDevicePage> {
                             context.read<DeviceCubit>().fetchDevices();
                           },
                           icon: const Icon(Icons.refresh),
-                          label: const Text('Refresh'),
+                          label: Text(S.of(context).refresh),
                         ),
                       ),
                     ],
@@ -248,9 +245,9 @@ class _ChosenDevicePageState extends State<ChosenDevicePage> {
     final difference = now.difference(dateTime);
 
     if (difference.inSeconds < 60) {
-      return 'Just now';
+      return S.of(context).just_now;
     } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m ago';
+      return '${difference.inMinutes} ${S.of(context).m_ago}';
     } else if (difference.inHours < 24) {
       return '${difference.inHours}h ago';
     } else {

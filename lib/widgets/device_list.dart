@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mapsapp/cubits/device_cubit.dart';
 import 'package:mapsapp/cubits/devices_state.dart';
+import 'package:mapsapp/generated/l10n.dart';
 import 'package:mapsapp/models/device_model.dart';
 
 class DeviceListWidget extends StatelessWidget {
@@ -58,7 +59,7 @@ class DeviceListWidget extends StatelessWidget {
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(color: colorScheme.outline),
                     ),
-                    hintText: 'Search devices...',
+                    hintText: S.of(context).search_devices,
                     hintStyle: TextStyle(color: textColor.withOpacity(0.6)),
                     prefixIcon: Icon(Icons.search, color: textColor),
                     border: const OutlineInputBorder(
@@ -72,7 +73,7 @@ class DeviceListWidget extends StatelessWidget {
                 child: filteredDevices.isEmpty
                     ? Center(
                         child: Text(
-                          'No devices found.',
+                          S.of(context).no_devices_found,
                           style: TextStyle(color: textColor),
                         ),
                       )
@@ -110,12 +111,12 @@ class DeviceListWidget extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Speed: ${device.speed} km/h',
+                                    '${S.of(context).speed}: ${device.speed} km/h',
                                     style: theme.textTheme.bodySmall
                                         ?.copyWith(color: textColor),
                                   ),
                                   Text(
-                                    'State: ${isMoving ? "Moving" : "Stopped"}',
+                                    '${S.of(context).state}: ${isMoving ? S.of(context).moving : S.of(context).stopped}',
                                     style: theme.textTheme.bodySmall
                                         ?.copyWith(color: textColor),
                                   ),

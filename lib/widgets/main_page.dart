@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mapsapp/generated/l10n.dart';
 import 'package:mapsapp/pages/devices_page.dart';
 import 'package:mapsapp/pages/settings_page.dart';
 import 'custom_googlemaps.dart';
@@ -35,18 +36,18 @@ class _MainPageState extends State<MainPage> {
             navBarTheme.unselectedItemColor ?? theme.unselectedWidgetColor,
         currentIndex: _selectedIndex,
         onTap: (index) => setState(() => _selectedIndex = index),
-        items: const [
+        items: [
           BottomNavigationBarItem(
             icon: Icon(Icons.home_filled),
-            label: 'Home',
+            label: '${S.of(context).home}',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.directions_car_filled_sharp),
-            label: 'Devices',
+            label: '${S.of(context).devices}',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.settings),
-            label: 'Settings',
+            label: '${S.of(context).settings}',
           ),
         ],
       ),

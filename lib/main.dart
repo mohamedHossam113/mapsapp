@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_localizations/flutter_localizations.dart'; // ✅ Add this import
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:mapsapp/cubits/auth_cubit.dart';
 import 'package:mapsapp/cubits/device_cubit.dart';
 import 'package:mapsapp/cubits/geofence_cubit.dart';
-import 'package:mapsapp/cubits/l10n/applocalization.dart';
+import 'package:mapsapp/generated/l10n.dart';
 import 'package:mapsapp/management/language_management.dart';
 import 'package:mapsapp/pages/login_page.dart';
 import 'package:mapsapp/services/auth_service.dart';
@@ -56,7 +56,7 @@ class _AppInitializer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeManager = Provider.of<ThemeManager>(context);
-    final languageManager = Provider.of<LanguageManager>(context); // ✅ Add this
+    final languageManager = Provider.of<LanguageManager>(context);
 
     return FutureBuilder<String?>(
       future: _getSavedToken(),
@@ -75,13 +75,13 @@ class _AppInitializer extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           // ✅ Add localization support
           locale: languageManager.currentLocale,
-          supportedLocales: languageManager.supportedLocales,
           localizationsDelegates: const [
-            AppLocalizations.delegate,
+            S.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
+          supportedLocales: languageManager.supportedLocales,
           theme: ThemeData(
             brightness: Brightness.light,
             scaffoldBackgroundColor: Colors.white,

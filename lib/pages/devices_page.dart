@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mapsapp/cubits/devices_state.dart';
+import 'package:mapsapp/generated/l10n.dart';
 import 'package:mapsapp/pages/chosen_device_page.dart';
 import 'package:mapsapp/widgets/main_page.dart';
 import '../cubits/device_cubit.dart';
@@ -49,7 +50,7 @@ class _DevicesPageState extends State<DevicesPage> {
           },
         ),
         title: Text(
-          'Devices',
+          S.of(context).devices,
           style: theme.appBarTheme.titleTextStyle ??
               TextStyle(color: colorScheme.onSurface),
         ),
@@ -68,7 +69,7 @@ class _DevicesPageState extends State<DevicesPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    state.message,
+                    S.of(context).error_loading_devices,
                     style: TextStyle(color: colorScheme.error),
                     textAlign: TextAlign.center,
                   ),
@@ -77,7 +78,7 @@ class _DevicesPageState extends State<DevicesPage> {
                     onPressed: () {
                       // context.read<DeviceCubit>().fetchDevices();
                     },
-                    child: const Text('Retry'),
+                    child: Text(S.of(context).retry),
                   ),
                 ],
               ),
@@ -93,7 +94,7 @@ class _DevicesPageState extends State<DevicesPage> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'No devices found.',
+                      S.of(context).no_devices_found,
                       style:
                           TextStyle(color: theme.textTheme.bodyMedium?.color),
                     ),
@@ -102,7 +103,7 @@ class _DevicesPageState extends State<DevicesPage> {
                       onPressed: () {
                         // context.read<DeviceCubit>().fetchDevices();
                       },
-                      child: const Text('Refresh'),
+                      child: Text(S.of(context).refresh),
                     ),
                   ],
                 ),
@@ -126,7 +127,8 @@ class _DevicesPageState extends State<DevicesPage> {
                   ),
                   itemBuilder: (context, index) {
                     final device = devices[index];
-                    final isMoving = device.status.toLowerCase() == 'moving';
+                    final isMoving =
+                        device.status.toLowerCase() == S.of(context).moving;
 
                     return GestureDetector(
                       // Use unique key with timestamp for proper rebuilding
@@ -176,17 +178,17 @@ class _DevicesPageState extends State<DevicesPage> {
                               ),
                               const SizedBox(height: 12),
                               Text(
-                                'State: ${device.status}',
+                                '${S.of(context).state}: ${device.status}',
                                 style: theme.textTheme.bodyMedium,
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Speed: ${device.speed} km/h',
+                                '${S.of(context).speed}: ${device.speed} km/h',
                                 style: theme.textTheme.bodyMedium,
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'Updated: ${_formatTime(device.lastUpdated)}',
+                                '${S.of(context).updated}: ${_formatTime(device.lastUpdated)}',
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: Colors.grey,
                                 ),
@@ -213,9 +215,9 @@ class _DevicesPageState extends State<DevicesPage> {
     final difference = now.difference(dateTime);
 
     if (difference.inSeconds < 60) {
-      return 'Just now';
+      return S.of(context).just_now;
     } else if (difference.inMinutes < 60) {
-      return '${difference.inMinutes}m ago';
+      return '${difference.inMinutes}${S.of(context).m_ago}';
     } else {
       return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
     }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mapsapp/cubits/auth_cubit.dart';
 import 'package:mapsapp/cubits/auth_state.dart';
+import 'package:mapsapp/generated/l10n.dart';
 import 'package:mapsapp/pages/login_page.dart';
 import 'package:mapsapp/widgets/custom_googlemaps.dart';
 import 'package:mapsapp/widgets/custom_widget.dart';
@@ -47,11 +48,11 @@ class _RegisterationPageState extends State<RegisterationPage> {
                 ),
               ),
               const SizedBox(height: 50),
-              const Row(
+              Row(
                 children: [
                   Text(
-                    'Register',
-                    style: TextStyle(
+                    S.of(context).register,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
@@ -63,21 +64,21 @@ class _RegisterationPageState extends State<RegisterationPage> {
 
               // Username
               CustomWidget(
-                hintText: 'Username',
+                hintText: S.of(context).username,
                 controller: usernameController,
               ),
               const SizedBox(height: 20),
 
               // Email
               CustomWidget(
-                hintText: 'Email',
+                hintText: S.of(context).email,
                 controller: emailController,
               ),
               const SizedBox(height: 20),
 
               // Password
               CustomWidget(
-                hintText: 'Password',
+                hintText: S.of(context).password,
                 controller: passwordController,
                 obscureText: true,
               ),
@@ -85,7 +86,7 @@ class _RegisterationPageState extends State<RegisterationPage> {
 
               // Confirm Password
               CustomWidget(
-                hintText: 'Confirm Password',
+                hintText: S.of(context).confirm_password,
                 controller: confirmPasswordController,
                 obscureText: true,
               ),
@@ -111,7 +112,7 @@ class _RegisterationPageState extends State<RegisterationPage> {
                     return const CircularProgressIndicator();
                   }
                   return MyButton(
-                    text: 'Sign up',
+                    text: S.of(context).sign_up,
                     onTap: () {
                       final username = usernameController.text.trim();
                       final email = emailController.text.trim();
@@ -123,16 +124,18 @@ class _RegisterationPageState extends State<RegisterationPage> {
                           password.isEmpty ||
                           confirmPassword.isEmpty) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text("Please fill all fields.")),
+                          SnackBar(
+                              content:
+                                  Text(S.of(context).please_fill_all_fields)),
                         );
                         return;
                       }
 
                       if (password != confirmPassword) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text("Passwords don't match.")),
+                          SnackBar(
+                              content:
+                                  Text(S.of(context).passwords_dont_match)),
                         );
                         return;
                       }
@@ -149,9 +152,9 @@ class _RegisterationPageState extends State<RegisterationPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
-                    'Already have an account?',
-                    style: TextStyle(
+                  Text(
+                    S.of(context).already_have_an_account,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
@@ -165,9 +168,9 @@ class _RegisterationPageState extends State<RegisterationPage> {
                             builder: (context) => const LoginPage()),
                       );
                     },
-                    child: const Text(
-                      ' Login',
-                      style: TextStyle(
+                    child: Text(
+                      S.of(context).login,
+                      style: const TextStyle(
                         color: Colors.blueAccent,
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
