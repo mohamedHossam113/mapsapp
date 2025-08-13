@@ -4,6 +4,7 @@ import 'package:mapsapp/cubits/device_cubit.dart';
 import 'package:mapsapp/cubits/devices_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:mapsapp/widgets/main_page.dart';
 
 import '../generated/l10n.dart';
 
@@ -182,30 +183,6 @@ class _ChosenDevicePageState extends State<ChosenDevicePage> {
                   ),
                   const SizedBox(height: 16),
                   // Add some action buttons if needed
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            // Navigate to map view for this device
-                            Navigator.pop(context);
-                          },
-                          icon: const Icon(Icons.map),
-                          label: Text(S.of(context).view_on_map),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            context.read<DeviceCubit>().fetchDevices();
-                          },
-                          icon: const Icon(Icons.refresh),
-                          label: Text(S.of(context).refresh),
-                        ),
-                      ),
-                    ],
-                  ),
                 ],
               ),
             );

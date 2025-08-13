@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:mapsapp/generated/l10n.dart';
 import 'package:mapsapp/widgets/device_list.dart';
 import 'package:sliding_up_panel/sliding_up_panel.dart';
 import 'package:mapsapp/models/place_model.dart';
@@ -314,12 +315,14 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
                     ],
                   ),
                   const SizedBox(height: 12),
-                  Text('Speed: ${selectedDevice!.speed} km/h',
+                  Text('${S.of(context).speed}: ${selectedDevice!.speed} km/h',
                       style: TextStyle(color: textColor)),
-                  Text('State: ${isMoving ? "Moving" : "Stopped"}',
+                  Text(
+                      '${S.of(context).state}: ${isMoving ? S.of(context).moving : S.of(context).stopped}',
                       style: TextStyle(color: textColor)),
-                  Text('Updated: ${_formatTime(selectedDevice!.lastUpdated)}',
-                      style: TextStyle(color: Colors.grey, fontSize: 12)),
+                  Text(
+                      '${S.of(context).last_updated}: ${_formatTime(selectedDevice!.lastUpdated)}',
+                      style: const TextStyle(color: Colors.grey, fontSize: 12)),
                 ],
               ),
             ),
@@ -384,13 +387,14 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
         markerId: MarkerId(device.id),
         position: LatLng(device.latitude, device.longitude),
         icon: BitmapDescriptor.defaultMarkerWithHue(
-          device.status.toLowerCase() == 'moving'
+          device.status.toLowerCase() == S.of(context).moving
               ? BitmapDescriptor.hueGreen
               : BitmapDescriptor.hueRed,
         ),
         infoWindow: InfoWindow(
           title: device.name,
-          snippet: 'Speed: ${device.speed} km/h\nStatus: ${device.status}',
+          snippet:
+              '${S.of(context).speed}: ${device.speed} km/h\n${S.of(context).state}: ${device.status}',
         ),
       );
     }).toSet();
@@ -408,7 +412,7 @@ class _CustomGooglemapsState extends State<CustomGooglemaps>
     final difference = now.difference(dateTime);
 
     if (difference.inSeconds < 60) {
-      return 'Just now';
+      return S.of(context).just_now;
     } else if (difference.inMinutes < 60) {
       return '${difference.inMinutes}m ago';
     } else {

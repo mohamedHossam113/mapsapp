@@ -160,7 +160,7 @@ class _DevicesPageState extends State<DevicesPage> {
                                 children: [
                                   Icon(
                                     Icons.directions_car,
-                                    color: isMoving ? Colors.green : Colors.red,
+                                    color: isMoving ? Colors.red : Colors.green,
                                     size: 28,
                                   ),
                                   const SizedBox(width: 8),
