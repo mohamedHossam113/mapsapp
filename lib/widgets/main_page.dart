@@ -38,16 +38,16 @@ class _MainPageState extends State<MainPage> {
         onTap: (index) => setState(() => _selectedIndex = index),
         items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_filled),
-            label: '${S.of(context).home}',
+            icon: const Icon(Icons.home_filled),
+            label: S.of(context).home,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.directions_car_filled_sharp),
-            label: '${S.of(context).devices}',
+            icon: const Icon(Icons.directions_car_filled_sharp),
+            label: S.of(context).devices,
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: '${S.of(context).settings}',
+            icon: const Icon(Icons.settings),
+            label: S.of(context).settings,
           ),
         ],
       ),

@@ -7,6 +7,7 @@ import 'package:mapsapp/cubits/geofence_cubit.dart';
 import 'package:mapsapp/generated/l10n.dart';
 import 'package:mapsapp/management/language_management.dart';
 import 'package:mapsapp/pages/login_page.dart';
+import 'package:mapsapp/pages/settings_page.dart';
 import 'package:mapsapp/services/auth_service.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:mapsapp/services/device_service.dart';
@@ -17,7 +18,6 @@ import 'package:mapsapp/management/theme_manager.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   runApp(const TestGoogleMapsWithFlutter());
 }
 
@@ -58,68 +58,79 @@ class _AppInitializer extends StatelessWidget {
     final themeManager = Provider.of<ThemeManager>(context);
     final languageManager = Provider.of<LanguageManager>(context);
 
-    return FutureBuilder<String?>(
-      future: _getSavedToken(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState != ConnectionState.done) {
-          return const MaterialApp(
-            home: Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            ),
-          );
-        }
-
-        final token = snapshot.data;
-
-        return MaterialApp(
-          debugShowCheckedModeBanner: false,
-          // ✅ Add localization support
-          locale: languageManager.currentLocale,
-          localizationsDelegates: const [
-            S.delegate,
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: languageManager.supportedLocales,
-          theme: ThemeData(
-            brightness: Brightness.light,
-            scaffoldBackgroundColor: Colors.white,
-            cardColor: Colors.grey.shade100,
-            colorScheme: const ColorScheme.light(
-              surface: Colors.white,
-              primary: Colors.black,
-              error: Colors.red,
-            ),
-            bottomSheetTheme: const BottomSheetThemeData(
-              backgroundColor: Colors.transparent,
-            ),
-            textTheme: const TextTheme(
-              titleLarge: TextStyle(color: Colors.black),
-              bodyMedium: TextStyle(color: Colors.black87),
-            ),
-          ),
-          darkTheme: ThemeData(
-            brightness: Brightness.dark,
-            scaffoldBackgroundColor: Colors.black,
-            cardColor: Colors.grey.shade900,
-            colorScheme: const ColorScheme.dark(
-              surface: Colors.black,
-              primary: Colors.white,
-              error: Colors.redAccent,
-            ),
-            bottomSheetTheme: const BottomSheetThemeData(
-              backgroundColor: Colors.transparent,
-            ),
-            textTheme: const TextTheme(
-              titleLarge: TextStyle(color: Colors.white),
-              bodyMedium: TextStyle(color: Colors.white70),
-            ),
-          ),
-          themeMode: themeManager.themeMode,
-          home: token != null && token.isNotEmpty
-              ? const MainPage()
-              : const LoginPage(),
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      locale: languageManager.currentLocale,
+      localizationsDelegates: const [
+        S.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      supportedLocales: languageManager.supportedLocales,
+      theme: ThemeData(
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: Colors.white,
+        cardColor: Colors.grey.shade100,
+        colorScheme: const ColorScheme.light(
+          surface: Colors.white,
+          primary: Colors.black,
+          error: Colors.red,
+        ),
+        bottomSheetTheme: const BottomSheetThemeData(
+          backgroundColor: Colors.transparent,
+        ),
+        textTheme: const TextTheme(
+          titleLarge: TextStyle(color: Colors.black),
+          bodyMedium: TextStyle(color: Colors.black87),
+        ),
+      ),
+      darkTheme: ThemeData(
+        brightness: Brightness.dark,
+        scaffoldBackgroundColor: Colors.black,
+        cardColor: Colors.grey.shade900,
+        colorScheme: const ColorScheme.dark(
+          surface: Colors.black,
+          primary: Colors.white,
+          error: Colors.redAccent,
+        ),
+        bottomSheetTheme: const BottomSheetThemeData(
+          backgroundColor: Colors.transparent,
+        ),
+        textTheme: const TextTheme(
+          titleLarge: TextStyle(color: Colors.white),
+          bodyMedium: TextStyle(color: Colors.white70),
+        ),
+      ),
+      themeMode: themeManager.themeMode,
+      // We decide the initial route asynchronously to prevent null crash
+      builder: (context, child) {
+        return FutureBuilder<String?>(
+          future: _getSavedToken(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Scaffold(
+                body: Center(child: CircularProgressIndicator()),
+              );
+            }
+            final token = snapshot.data;
+            return Navigator(
+              initialRoute:
+                  (token != null && token.isNotEmpty) ? '/main' : '/login',
+              onGenerateRoute: (settings) {
+                switch (settings.name) {
+                  case '/main':
+                    return MaterialPageRoute(builder: (_) => const MainPage());
+                  case '/settings':
+                    return MaterialPageRoute(
+                        builder: (_) => const SettingsPage());
+                  case '/login':
+                  default:
+                    return MaterialPageRoute(builder: (_) => const LoginPage());
+                }
+              },
+            );
+          },
         );
       },
     );

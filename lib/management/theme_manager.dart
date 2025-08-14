@@ -8,5 +8,6 @@ class ThemeManager with ChangeNotifier {
   void toggleTheme(bool isDark) {
     _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
     notifyListeners();
+    // Navigation should be handled in the UI layer, not in ThemeManager.
   }
 }
