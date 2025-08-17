@@ -15,14 +15,6 @@ class DevicesPage extends StatefulWidget {
 
 class _DevicesPageState extends State<DevicesPage> {
   @override
-  void initState() {
-    super.initState();
-    // Fetch devices and initialize socket
-    // final cubit = context.read<DeviceCubit>();
-    // cubit.fetchDevices();
-  }
-
-  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
@@ -56,8 +48,6 @@ class _DevicesPageState extends State<DevicesPage> {
         ),
       ),
       body: BlocBuilder<DeviceCubit, DeviceState>(
-        // Force rebuild on every state change
-        buildWhen: (previous, current) => true,
         builder: (context, state) {
           if (state is DeviceLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -114,92 +104,84 @@ class _DevicesPageState extends State<DevicesPage> {
               onRefresh: () async {
                 // context.read<DeviceCubit>().fetchDevices();
               },
-              child: Padding(
+              child: ListView.builder(
+                physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(8.0),
-                child: GridView.builder(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  itemCount: devices.length,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    childAspectRatio: 4 / 3,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                  ),
-                  itemBuilder: (context, index) {
-                    final device = devices[index];
-                    final isMoving =
-                        device.status.toLowerCase() == S.of(context).moving;
+                itemCount: devices.length,
+                itemBuilder: (context, index) {
+                  final device = devices[index];
+                  final isMoving =
+                      device.status.toLowerCase() == S.of(context).moving;
 
-                    return GestureDetector(
-                      // Use unique key with timestamp for proper rebuilding
-                      key: ValueKey(
-                          '${device.id}_${device.lastUpdated.millisecondsSinceEpoch}'),
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => BlocProvider.value(
-                              value: context.read<DeviceCubit>(),
-                              child: ChosenDevicePage(device: device),
-                            ),
+                  return GestureDetector(
+                    key: ValueKey(
+                        '${device.id}_${device.lastUpdated.millisecondsSinceEpoch}'),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => BlocProvider.value(
+                            value: context.read<DeviceCubit>(),
+                            child: ChosenDevicePage(device: device),
                           ),
-                        );
-                      },
-                      child: Card(
-                        color: theme.cardColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
                         ),
-                        elevation: 4,
-                        child: Padding(
-                          padding: const EdgeInsets.all(12.0),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  Icon(
-                                    Icons.directions_car,
-                                    color: isMoving ? Colors.red : Colors.green,
-                                    size: 28,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Expanded(
-                                    child: Text(
-                                      device.name,
-                                      style:
-                                          theme.textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 12),
-                              Text(
-                                '${S.of(context).state}: ${device.status}',
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${S.of(context).speed}: ${device.speed} km/h',
-                                style: theme.textTheme.bodyMedium,
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${S.of(context).updated}: ${_formatTime(device.lastUpdated)}',
-                                style: theme.textTheme.bodySmall?.copyWith(
-                                  color: Colors.grey,
+                      );
+                    },
+                    child: Card(
+                      color: theme.cardColor,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 4,
+                      margin: const EdgeInsets.symmetric(vertical: 6),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.directions_car,
+                                  color: isMoving ? Colors.red : Colors.green,
+                                  size: 28,
                                 ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    device.name,
+                                    style:
+                                        theme.textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              '${S.of(context).state}: ${device.status}',
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${S.of(context).speed}: ${device.speed} km/h',
+                              style: theme.textTheme.bodyMedium,
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              '${S.of(context).updated}: ${_formatTime(device.lastUpdated)}',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: Colors.grey,
                               ),
-                            ],
-                          ),
+                            ),
+                          ],
                         ),
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                },
               ),
             );
           }

@@ -103,18 +103,16 @@ class _AppInitializer extends StatelessWidget {
         ),
       ),
       themeMode: themeManager.themeMode,
+      // We decide the initial route asynchronously to prevent null crash
       builder: (context, child) {
         return FutureBuilder<String?>(
           future: _getSavedToken(),
           builder: (context, snapshot) {
-            // Show loader while waiting
-            if (snapshot.connectionState == ConnectionState.waiting) {
+            if (!snapshot.hasData) {
               return const Scaffold(
                 body: Center(child: CircularProgressIndicator()),
               );
             }
-
-            // When future completes (even with null)
             final token = snapshot.data;
             return Navigator(
               initialRoute:

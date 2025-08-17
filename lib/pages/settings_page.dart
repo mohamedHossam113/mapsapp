@@ -276,14 +276,6 @@ class _SettingsPageState extends State<SettingsPage> {
                           style: const TextStyle(fontSize: 18),
                         ),
                         value: isDark,
-                        // Replace this part in your SwitchListTile onChanged:
-
-                        // Replace this part in your SwitchListTile onChanged:
-
-                        // Replace this part in your SwitchListTile onChanged:
-
-                        // Replace this part in your SwitchListTile onChanged:
-
                         onChanged: (value) {
                           try {
                             if (_isSafe) {
